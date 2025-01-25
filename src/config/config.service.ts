@@ -36,6 +36,7 @@ type BotConfig = {
 
 @Injectable()
 export class CustomConfigService extends NestConfigService {
+  // TODO FIXME Schema validation for config
   public get botConfig(): BotConfig {
     return {
       ...(config as BotConfig),

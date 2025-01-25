@@ -8,6 +8,8 @@ import {
   PublicRpcSchema,
   PublicActions,
   HttpTransport,
+  GetBlockReturnType,
+  BlockTag,
 } from 'viem';
 import { CustomConfigService } from '../config/config.service.js';
 import { privateKeyToAccount } from 'viem/accounts';
@@ -35,14 +37,7 @@ export class ViemService {
         account: privateKeyToAccount(chain.private_key),
       });
 
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
-      const clientWPublic: Client<
-        HttpTransport,
-        undefined,
-        Account,
-        PublicRpcSchema,
-        PublicActions<HttpTransport, undefined>
-      > = client.extend(publicActions);
+      const clientWPublic = client.extend(publicActions);
 
       this.clients.set(chain.name, clientWPublic);
     }
@@ -50,5 +45,16 @@ export class ViemService {
 
   async getBlockNumber(chainName: string): Promise<bigint> {
     return await this.clients.get(chainName)!.getBlockNumber();
+  }
+
+  async getBlockBatch(
+    chainName: string,
+    blockNumbers: bigint[],
+  ): Promise<GetBlockReturnType<undefined, false, BlockTag>[]> {
+    return Promise.all(
+      blockNumbers.map(async (blockNumber) => {
+        return this.clients.get(chainName)!.getBlock({ blockNumber });
+      }),
+    );
   }
 }
