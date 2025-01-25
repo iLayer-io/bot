@@ -16,7 +16,7 @@ describe('ViemService', () => {
 
   it('should be defined', async () => {
     expect(service).toBeDefined();
-    const result = await service.getBlockNumber();
+    const result = await service.getBlockNumber('Foundry');
     expect(result).toBe(27n);
   });
 });
