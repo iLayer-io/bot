@@ -35,7 +35,6 @@ export class ViemService {
       account: privateKeyToAccount(privateKey),
     });
 
-    // @ts-expect-error error
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
     this.client = client.extend(publicActions);
   }
