@@ -17,6 +17,10 @@ describe('ViemService', () => {
   it('should be defined', async () => {
     expect(service).toBeDefined();
     const result = await service.getBlockNumber('Foundry');
+    const res = await service.getBlockBatch('Foundry', [27n]);
+    res.forEach((r) => {
+      console.log(r);
+    });
     expect(result).toBe(27n);
   });
 });
