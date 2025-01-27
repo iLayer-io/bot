@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import {
   http,
   createClient,
@@ -18,7 +18,7 @@ import { privateKeyToAccount } from 'viem/accounts';
 import { abi as orderHubAbi } from './abi/OrderHub.abi.js';
 
 @Injectable()
-export class ViemService {
+export class ViemService implements OnModuleInit, OnModuleDestroy {
   private clients: Map<
     string,
     Client<
@@ -29,11 +29,9 @@ export class ViemService {
       PublicActions<HttpTransport, undefined>
     >
   >;
-  private orderHubAbi: Abi;
   private chainMap: Map<string, Chain>;
 
   constructor(private configService: CustomConfigService) {
-    this.orderHubAbi = orderHubAbi;
     this.clients = new Map();
     this.chainMap = new Map();
 
@@ -50,6 +48,15 @@ export class ViemService {
 
       this.clients.set(chain.name, clientWPublic);
     }
+  }
+  onModuleDestroy() {
+    // TODO Clean up clients and subscriptions
+  }
+  onModuleInit() {
+    this.watcOrderHubLogs({
+      chainName: 'Foundry',
+      fromBlock: BigInt(0),
+    }).catch(console.error);
   }
 
   async getBlockNumber(chainName: string): Promise<bigint> {
@@ -80,13 +87,33 @@ export class ViemService {
   > {
     const client = this.clients.get(chainName)!;
     const filter = await client.createContractEventFilter({
-      abi: this.orderHubAbi,
+      abi: orderHubAbi,
       address: this.chainMap.get(chainName)!.order_contract_address,
       fromBlock,
       toBlock,
-      eventName: 'OrderCreated',
     });
     const result = await client.getFilterLogs({ filter });
     return result;
+  }
+
+  async watcOrderHubLogs({
+    chainName,
+    fromBlock,
+  }: {
+    chainName: string;
+    fromBlock: bigint;
+  }): Promise<void> {
+    const client = this.clients.get(chainName)!;
+    client.watchContractEvent({
+      address: this.chainMap.get(chainName)!.order_contract_address,
+      abi: orderHubAbi,
+      fromBlock,
+      onLogs: (logs) => {
+        console.log(logs);
+      },
+      onError: (error) => {
+        console.error(error);
+      },
+    });
   }
 }
