@@ -23,4 +23,15 @@ describe('ViemService', () => {
     });
     expect(result).toBe(27n);
   });
+
+  it('should get logs', async () => {
+    const res = await service.getBlockBatchLogs({
+      chainName: 'Foundry',
+      fromBlock: 0n,
+      toBlock: 28n,
+    });
+    res.forEach((r) => {
+      console.log(r);
+    });
+  });
 });

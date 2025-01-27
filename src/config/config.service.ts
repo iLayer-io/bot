@@ -13,7 +13,7 @@ type Token = {
   image: string;
 };
 
-type Chain = {
+export type Chain = {
   name: string;
   private_key: `0x${string}`;
   chain_id: number;
@@ -25,7 +25,7 @@ type Chain = {
   min_order_val: number;
   max_order_val: number;
   profitability_threshold: number;
-  order_contract_address: string;
+  order_contract_address: `0x${string}`;
   filler_poll_interval: number;
   tokens: Token[];
 };

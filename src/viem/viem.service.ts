@@ -10,9 +10,12 @@ import {
   HttpTransport,
   GetBlockReturnType,
   BlockTag,
+  Abi,
+  GetFilterLogsReturnType,
 } from 'viem';
-import { CustomConfigService } from '../config/config.service.js';
+import { Chain, CustomConfigService } from '../config/config.service.js';
 import { privateKeyToAccount } from 'viem/accounts';
+import { abi as orderHubAbi } from './abi/OrderHub.abi.js';
 
 @Injectable()
 export class ViemService {
@@ -26,10 +29,16 @@ export class ViemService {
       PublicActions<HttpTransport, undefined>
     >
   >;
+  private orderHubAbi: Abi;
+  private chainMap: Map<string, Chain>;
 
   constructor(private configService: CustomConfigService) {
+    this.orderHubAbi = orderHubAbi;
     this.clients = new Map();
+    this.chainMap = new Map();
+
     for (const chain of this.configService.botConfig.chain) {
+      this.chainMap.set(chain.name, chain);
       const client = createClient({
         transport: http(chain.rpc_url),
         key: 'client',
@@ -56,5 +65,28 @@ export class ViemService {
         return this.clients.get(chainName)!.getBlock({ blockNumber });
       }),
     );
+  }
+
+  async getBlockBatchLogs({
+    chainName,
+    fromBlock,
+    toBlock,
+  }: {
+    chainName: string;
+    fromBlock: bigint;
+    toBlock: bigint;
+  }): Promise<
+    GetFilterLogsReturnType<Abi, undefined, undefined, bigint, bigint>
+  > {
+    const client = this.clients.get(chainName)!;
+    const filter = await client.createContractEventFilter({
+      abi: this.orderHubAbi,
+      address: this.chainMap.get(chainName)!.order_contract_address,
+      fromBlock,
+      toBlock,
+      eventName: 'OrderCreated',
+    });
+    const result = await client.getFilterLogs({ filter });
+    return result;
   }
 }
