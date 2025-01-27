@@ -12,6 +12,7 @@ import {
   BlockTag,
   Abi,
   GetFilterLogsReturnType,
+  decodeEventLog,
 } from 'viem';
 import { Chain, CustomConfigService } from '../config/config.service.js';
 import { privateKeyToAccount } from 'viem/accounts';
@@ -109,7 +110,15 @@ export class ViemService implements OnModuleInit, OnModuleDestroy {
       abi: orderHubAbi,
       fromBlock,
       onLogs: (logs) => {
-        console.log(logs);
+        logs.forEach((log) => {
+          const event = decodeEventLog({
+            abi: orderHubAbi,
+            data: log.data,
+            topics: log.topics,
+            strict: true,
+          });
+          console.log(event.args);
+        });
       },
       onError: (error) => {
         console.error(error);
