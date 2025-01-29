@@ -13,7 +13,7 @@ type Token = {
   image: string;
 };
 
-export type Chain = {
+export type BotChain = {
   name: string;
   private_key: `0x${string}`;
   chain_id: number;
@@ -31,7 +31,7 @@ export type Chain = {
 };
 
 type BotConfig = {
-  chain: Chain[];
+  chain: BotChain[];
 };
 
 @Injectable()

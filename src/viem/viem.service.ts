@@ -1,25 +1,25 @@
-import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import {
-  http,
-  createClient,
-  publicActions,
-  Client,
-  Account,
-  PublicRpcSchema,
-  PublicActions,
-  HttpTransport,
-  GetBlockReturnType,
-  BlockTag,
   Abi,
+  Account,
+  BlockTag,
+  Client,
+  createClient,
+  GetBlockReturnType,
   GetFilterLogsReturnType,
-  decodeEventLog,
+  http,
+  HttpTransport,
+  Log,
+  publicActions,
+  PublicActions,
+  PublicRpcSchema,
 } from 'viem';
-import { Chain, CustomConfigService } from '../config/config.service.js';
 import { privateKeyToAccount } from 'viem/accounts';
+import { BotChain, CustomConfigService } from '../config/config.service.js';
 import { abi as orderHubAbi } from './abi/OrderHub.abi.js';
 
 @Injectable()
-export class ViemService implements OnModuleInit, OnModuleDestroy {
+export class ViemService {
   private clients: Map<
     string,
     Client<
@@ -30,7 +30,7 @@ export class ViemService implements OnModuleInit, OnModuleDestroy {
       PublicActions<HttpTransport, undefined>
     >
   >;
-  private chainMap: Map<string, Chain>;
+  private chainMap: Map<string, BotChain>;
 
   constructor(private configService: CustomConfigService) {
     this.clients = new Map();
@@ -49,15 +49,6 @@ export class ViemService implements OnModuleInit, OnModuleDestroy {
 
       this.clients.set(chain.name, clientWPublic);
     }
-  }
-  onModuleDestroy() {
-    // TODO Clean up clients and subscriptions
-  }
-  onModuleInit() {
-    this.watcOrderHubLogs({
-      chainName: 'Foundry',
-      fromBlock: BigInt(0),
-    }).catch(console.error);
   }
 
   async getBlockNumber(chainName: string): Promise<bigint> {
@@ -100,9 +91,19 @@ export class ViemService implements OnModuleInit, OnModuleDestroy {
   async watcOrderHubLogs({
     chainName,
     fromBlock,
+    onLog,
   }: {
     chainName: string;
     fromBlock: bigint;
+    onLog: (
+      log: Log<
+        bigint,
+        number,
+        false,
+        Extract<(typeof orderHubAbi)[number], { type: 'event' }>,
+        false
+      >,
+    ) => Promise<void>;
   }): Promise<void> {
     const client = this.clients.get(chainName)!;
     client.watchContractEvent({
@@ -111,13 +112,7 @@ export class ViemService implements OnModuleInit, OnModuleDestroy {
       fromBlock,
       onLogs: (logs) => {
         logs.forEach((log) => {
-          const event = decodeEventLog({
-            abi: orderHubAbi,
-            data: log.data,
-            topics: log.topics,
-            strict: true,
-          });
-          console.log(event.args);
+          onLog(log).catch((error) => console.error(error));
         });
       },
       onError: (error) => {
