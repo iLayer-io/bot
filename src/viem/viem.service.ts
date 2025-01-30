@@ -18,6 +18,14 @@ import { privateKeyToAccount } from 'viem/accounts';
 import { BotChain, CustomConfigService } from '../config/config.service.js';
 import { abi as orderHubAbi } from './abi/OrderHub.abi.js';
 
+export type OrderHubLog = Log<
+  bigint,
+  number,
+  false,
+  Extract<(typeof orderHubAbi)[number], { type: 'event' }>,
+  false
+>;
+
 @Injectable()
 export class ViemService {
   private clients: Map<
@@ -95,15 +103,7 @@ export class ViemService {
   }: {
     chainName: string;
     fromBlock: bigint;
-    onLog: (
-      log: Log<
-        bigint,
-        number,
-        false,
-        Extract<(typeof orderHubAbi)[number], { type: 'event' }>,
-        false
-      >,
-    ) => Promise<void>;
+    onLog: (log: OrderHubLog) => Promise<void>;
   }): Promise<void> {
     const client = this.clients.get(chainName)!;
     client.watchContractEvent({
