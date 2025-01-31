@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
-import { DatabaseWatcherService } from './database-watcher.service';
+import { DatabaseWatcherService } from './database-watcher.service.js';
 
 @Module({
-  providers: [DatabaseWatcherService]
+  providers: [DatabaseWatcherService],
 })
 export class DatabaseWatcherModule {}

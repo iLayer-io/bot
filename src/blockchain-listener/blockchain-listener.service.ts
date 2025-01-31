@@ -47,7 +47,7 @@ export class BlockchainListenerService implements OnModuleInit {
         fromBlock = lastCheckpoint.height;
       }
 
-      // TODO FIXME Run polling
+      // TODO FIXME Consume batch blocks
 
       this.logger.log({
         message: `Starting listener`,
@@ -55,6 +55,7 @@ export class BlockchainListenerService implements OnModuleInit {
         fromBlock: fromBlock,
       });
 
+      // TODO FIXME Add OrderSpoke OrderFilled event listener
       return this.viemService.watcOrderHubLogs({
         chainName: chain.name,
         fromBlock: fromBlock,
@@ -73,7 +74,36 @@ export class BlockchainListenerService implements OnModuleInit {
     log: OrderHubLog;
     chain: BotChain;
   }) {
-    // TODO FIXME Write to database the received log
-    console.log(chain, log);
+    // await this.prismaService.order.create({
+    //   data: {
+    //     chain_id: chain.chain_id,
+    //     deadline: log.arg,
+    //     destination_chain_selector: log.destinationChainSelector,
+    //     filler: log.filler,
+    //     order_id: log.orderId,
+    //     order_status: order_status.Created,
+    //     primary_filler_deadline: log.primaryFillerDeadline,
+    //     source_chain_selector: log.sourceChainSelector,
+    //     sponsored: log.sponsored,
+    //     user: log.user,
+    //     call_data: log.callData,
+    //     call_recipient: log.callRecipient,
+    //   },
+    //   select: { id: true },
+    // });
+
+    const exists = await this.prismaService.block_checkpoint.findFirst({
+      where: { height: log.blockNumber, chain_id: chain.chain_id },
+    });
+    if (!exists) {
+      await this.prismaService.block_checkpoint.create({
+        data: {
+          chain_id: chain.chain_id,
+          height: log.blockNumber,
+        },
+      });
+    }
+
+    // TODO FIXME Emit to Filler
   }
 }

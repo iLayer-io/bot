@@ -10,76 +10,40 @@ export const orderCreatedEventAbi = {
     },
     {
       name: 'nonce',
-      type: 'uint256',
+      type: 'uint64',
       indexed: false,
-      internalType: 'uint256',
+      internalType: 'uint64',
     },
     {
       name: 'order',
       type: 'tuple',
       indexed: false,
-      internalType: 'struct Validator.Order',
+      internalType: 'struct Root.Order',
       components: [
         {
           name: 'user',
-          type: 'tuple',
-          internalType: 'struct bytes64',
-          components: [
-            {
-              name: 'lower',
-              type: 'bytes32',
-              internalType: 'bytes32',
-            },
-            {
-              name: 'upper',
-              type: 'bytes32',
-              internalType: 'bytes32',
-            },
-          ],
+          type: 'bytes32',
+          internalType: 'bytes32',
         },
         {
           name: 'filler',
-          type: 'tuple',
-          internalType: 'struct bytes64',
-          components: [
-            {
-              name: 'lower',
-              type: 'bytes32',
-              internalType: 'bytes32',
-            },
-            {
-              name: 'upper',
-              type: 'bytes32',
-              internalType: 'bytes32',
-            },
-          ],
+          type: 'bytes32',
+          internalType: 'bytes32',
         },
         {
           name: 'inputs',
           type: 'tuple[]',
-          internalType: 'struct Validator.Token[]',
+          internalType: 'struct Root.Token[]',
           components: [
             {
               name: 'tokenType',
               type: 'uint8',
-              internalType: 'enum Validator.Type',
+              internalType: 'enum Root.Type',
             },
             {
               name: 'tokenAddress',
-              type: 'tuple',
-              internalType: 'struct bytes64',
-              components: [
-                {
-                  name: 'lower',
-                  type: 'bytes32',
-                  internalType: 'bytes32',
-                },
-                {
-                  name: 'upper',
-                  type: 'bytes32',
-                  internalType: 'bytes32',
-                },
-              ],
+              type: 'bytes32',
+              internalType: 'bytes32',
             },
             {
               name: 'tokenId',
@@ -96,29 +60,17 @@ export const orderCreatedEventAbi = {
         {
           name: 'outputs',
           type: 'tuple[]',
-          internalType: 'struct Validator.Token[]',
+          internalType: 'struct Root.Token[]',
           components: [
             {
               name: 'tokenType',
               type: 'uint8',
-              internalType: 'enum Validator.Type',
+              internalType: 'enum Root.Type',
             },
             {
               name: 'tokenAddress',
-              type: 'tuple',
-              internalType: 'struct bytes64',
-              components: [
-                {
-                  name: 'lower',
-                  type: 'bytes32',
-                  internalType: 'bytes32',
-                },
-                {
-                  name: 'upper',
-                  type: 'bytes32',
-                  internalType: 'bytes32',
-                },
-              ],
+              type: 'bytes32',
+              internalType: 'bytes32',
             },
             {
               name: 'tokenId',
@@ -133,14 +85,14 @@ export const orderCreatedEventAbi = {
           ],
         },
         {
-          name: 'sourceChainSelector',
-          type: 'uint256',
-          internalType: 'uint256',
+          name: 'sourceChainEid',
+          type: 'uint32',
+          internalType: 'uint32',
         },
         {
-          name: 'destinationChainSelector',
-          type: 'uint256',
-          internalType: 'uint256',
+          name: 'destinationChainEid',
+          type: 'uint32',
+          internalType: 'uint32',
         },
         {
           name: 'sponsored',
@@ -149,30 +101,18 @@ export const orderCreatedEventAbi = {
         },
         {
           name: 'primaryFillerDeadline',
-          type: 'uint256',
-          internalType: 'uint256',
+          type: 'uint64',
+          internalType: 'uint64',
         },
         {
           name: 'deadline',
-          type: 'uint256',
-          internalType: 'uint256',
+          type: 'uint64',
+          internalType: 'uint64',
         },
         {
           name: 'callRecipient',
-          type: 'tuple',
-          internalType: 'struct bytes64',
-          components: [
-            {
-              name: 'lower',
-              type: 'bytes32',
-              internalType: 'bytes32',
-            },
-            {
-              name: 'upper',
-              type: 'bytes32',
-              internalType: 'bytes32',
-            },
-          ],
+          type: 'bytes32',
+          internalType: 'bytes32',
         },
         {
           name: 'callData',
@@ -182,10 +122,10 @@ export const orderCreatedEventAbi = {
       ],
     },
     {
-      name: 'confirmations',
-      type: 'uint16',
-      indexed: false,
-      internalType: 'uint16',
+      name: 'calller',
+      type: 'address',
+      indexed: true,
+      internalType: 'address',
     },
   ],
   anonymous: false,
@@ -257,10 +197,39 @@ export const abi = [
   },
   {
     type: 'function',
-    name: 'acceptOwnership',
-    inputs: [],
-    outputs: [],
-    stateMutability: 'nonpayable',
+    name: 'allowInitializePath',
+    inputs: [
+      {
+        name: 'origin',
+        type: 'tuple',
+        internalType: 'struct Origin',
+        components: [
+          {
+            name: 'srcEid',
+            type: 'uint32',
+            internalType: 'uint32',
+          },
+          {
+            name: 'sender',
+            type: 'bytes32',
+            internalType: 'bytes32',
+          },
+          {
+            name: 'nonce',
+            type: 'uint64',
+            internalType: 'uint64',
+          },
+        ],
+      },
+    ],
+    outputs: [
+      {
+        name: '',
+        type: 'bool',
+        internalType: 'bool',
+      },
+    ],
+    stateMutability: 'view',
   },
   {
     type: 'function',
@@ -273,79 +242,43 @@ export const abi = [
         components: [
           {
             name: 'deadline',
-            type: 'uint256',
-            internalType: 'uint256',
+            type: 'uint64',
+            internalType: 'uint64',
           },
           {
             name: 'nonce',
-            type: 'uint256',
-            internalType: 'uint256',
+            type: 'uint64',
+            internalType: 'uint64',
           },
           {
             name: 'order',
             type: 'tuple',
-            internalType: 'struct Validator.Order',
+            internalType: 'struct Root.Order',
             components: [
               {
                 name: 'user',
-                type: 'tuple',
-                internalType: 'struct bytes64',
-                components: [
-                  {
-                    name: 'lower',
-                    type: 'bytes32',
-                    internalType: 'bytes32',
-                  },
-                  {
-                    name: 'upper',
-                    type: 'bytes32',
-                    internalType: 'bytes32',
-                  },
-                ],
+                type: 'bytes32',
+                internalType: 'bytes32',
               },
               {
                 name: 'filler',
-                type: 'tuple',
-                internalType: 'struct bytes64',
-                components: [
-                  {
-                    name: 'lower',
-                    type: 'bytes32',
-                    internalType: 'bytes32',
-                  },
-                  {
-                    name: 'upper',
-                    type: 'bytes32',
-                    internalType: 'bytes32',
-                  },
-                ],
+                type: 'bytes32',
+                internalType: 'bytes32',
               },
               {
                 name: 'inputs',
                 type: 'tuple[]',
-                internalType: 'struct Validator.Token[]',
+                internalType: 'struct Root.Token[]',
                 components: [
                   {
                     name: 'tokenType',
                     type: 'uint8',
-                    internalType: 'enum Validator.Type',
+                    internalType: 'enum Root.Type',
                   },
                   {
                     name: 'tokenAddress',
-                    type: 'tuple',
-                    internalType: 'struct bytes64',
-                    components: [
-                      {
-                        name: 'lower',
-                        type: 'bytes32',
-                        internalType: 'bytes32',
-                      },
-                      {
-                        name: 'upper',
-                        type: 'bytes32',
-                        internalType: 'bytes32',
-                      },
-                    ],
+                    type: 'bytes32',
+                    internalType: 'bytes32',
                   },
                   {
                     name: 'tokenId',
@@ -362,29 +295,17 @@ export const abi = [
               {
                 name: 'outputs',
                 type: 'tuple[]',
-                internalType: 'struct Validator.Token[]',
+                internalType: 'struct Root.Token[]',
                 components: [
                   {
                     name: 'tokenType',
                     type: 'uint8',
-                    internalType: 'enum Validator.Type',
+                    internalType: 'enum Root.Type',
                   },
                   {
                     name: 'tokenAddress',
-                    type: 'tuple',
-                    internalType: 'struct bytes64',
-                    components: [
-                      {
-                        name: 'lower',
-                        type: 'bytes32',
-                        internalType: 'bytes32',
-                      },
-                      {
-                        name: 'upper',
-                        type: 'bytes32',
-                        internalType: 'bytes32',
-                      },
-                    ],
+                    type: 'bytes32',
+                    internalType: 'bytes32',
                   },
                   {
                     name: 'tokenId',
@@ -399,14 +320,14 @@ export const abi = [
                 ],
               },
               {
-                name: 'sourceChainSelector',
-                type: 'uint256',
-                internalType: 'uint256',
+                name: 'sourceChainEid',
+                type: 'uint32',
+                internalType: 'uint32',
               },
               {
-                name: 'destinationChainSelector',
-                type: 'uint256',
-                internalType: 'uint256',
+                name: 'destinationChainEid',
+                type: 'uint32',
+                internalType: 'uint32',
               },
               {
                 name: 'sponsored',
@@ -415,30 +336,18 @@ export const abi = [
               },
               {
                 name: 'primaryFillerDeadline',
-                type: 'uint256',
-                internalType: 'uint256',
+                type: 'uint64',
+                internalType: 'uint64',
               },
               {
                 name: 'deadline',
-                type: 'uint256',
-                internalType: 'uint256',
+                type: 'uint64',
+                internalType: 'uint64',
               },
               {
                 name: 'callRecipient',
-                type: 'tuple',
-                internalType: 'struct bytes64',
-                components: [
-                  {
-                    name: 'lower',
-                    type: 'bytes32',
-                    internalType: 'bytes32',
-                  },
-                  {
-                    name: 'upper',
-                    type: 'bytes32',
-                    internalType: 'bytes32',
-                  },
-                ],
+                type: 'bytes32',
+                internalType: 'bytes32',
               },
               {
                 name: 'callData',
@@ -459,11 +368,6 @@ export const abi = [
         type: 'bytes',
         internalType: 'bytes',
       },
-      {
-        name: 'confirmations',
-        type: 'uint16',
-        internalType: 'uint16',
-      },
     ],
     outputs: [
       {
@@ -473,27 +377,21 @@ export const abi = [
       },
       {
         name: '',
-        type: 'uint256',
-        internalType: 'uint256',
+        type: 'uint64',
+        internalType: 'uint64',
       },
     ],
     stateMutability: 'payable',
   },
   {
     type: 'function',
-    name: 'executors',
-    inputs: [
-      {
-        name: 'chain',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
-    ],
+    name: 'endpoint',
+    inputs: [],
     outputs: [
       {
-        name: 'executor',
+        name: '',
         type: 'address',
-        internalType: 'address',
+        internalType: 'contract ILayerZeroEndpointV2',
       },
     ],
     stateMutability: 'view',
@@ -505,68 +403,32 @@ export const abi = [
       {
         name: 'order',
         type: 'tuple',
-        internalType: 'struct Validator.Order',
+        internalType: 'struct Root.Order',
         components: [
           {
             name: 'user',
-            type: 'tuple',
-            internalType: 'struct bytes64',
-            components: [
-              {
-                name: 'lower',
-                type: 'bytes32',
-                internalType: 'bytes32',
-              },
-              {
-                name: 'upper',
-                type: 'bytes32',
-                internalType: 'bytes32',
-              },
-            ],
+            type: 'bytes32',
+            internalType: 'bytes32',
           },
           {
             name: 'filler',
-            type: 'tuple',
-            internalType: 'struct bytes64',
-            components: [
-              {
-                name: 'lower',
-                type: 'bytes32',
-                internalType: 'bytes32',
-              },
-              {
-                name: 'upper',
-                type: 'bytes32',
-                internalType: 'bytes32',
-              },
-            ],
+            type: 'bytes32',
+            internalType: 'bytes32',
           },
           {
             name: 'inputs',
             type: 'tuple[]',
-            internalType: 'struct Validator.Token[]',
+            internalType: 'struct Root.Token[]',
             components: [
               {
                 name: 'tokenType',
                 type: 'uint8',
-                internalType: 'enum Validator.Type',
+                internalType: 'enum Root.Type',
               },
               {
                 name: 'tokenAddress',
-                type: 'tuple',
-                internalType: 'struct bytes64',
-                components: [
-                  {
-                    name: 'lower',
-                    type: 'bytes32',
-                    internalType: 'bytes32',
-                  },
-                  {
-                    name: 'upper',
-                    type: 'bytes32',
-                    internalType: 'bytes32',
-                  },
-                ],
+                type: 'bytes32',
+                internalType: 'bytes32',
               },
               {
                 name: 'tokenId',
@@ -583,29 +445,17 @@ export const abi = [
           {
             name: 'outputs',
             type: 'tuple[]',
-            internalType: 'struct Validator.Token[]',
+            internalType: 'struct Root.Token[]',
             components: [
               {
                 name: 'tokenType',
                 type: 'uint8',
-                internalType: 'enum Validator.Type',
+                internalType: 'enum Root.Type',
               },
               {
                 name: 'tokenAddress',
-                type: 'tuple',
-                internalType: 'struct bytes64',
-                components: [
-                  {
-                    name: 'lower',
-                    type: 'bytes32',
-                    internalType: 'bytes32',
-                  },
-                  {
-                    name: 'upper',
-                    type: 'bytes32',
-                    internalType: 'bytes32',
-                  },
-                ],
+                type: 'bytes32',
+                internalType: 'bytes32',
               },
               {
                 name: 'tokenId',
@@ -620,14 +470,14 @@ export const abi = [
             ],
           },
           {
-            name: 'sourceChainSelector',
-            type: 'uint256',
-            internalType: 'uint256',
+            name: 'sourceChainEid',
+            type: 'uint32',
+            internalType: 'uint32',
           },
           {
-            name: 'destinationChainSelector',
-            type: 'uint256',
-            internalType: 'uint256',
+            name: 'destinationChainEid',
+            type: 'uint32',
+            internalType: 'uint32',
           },
           {
             name: 'sponsored',
@@ -636,30 +486,18 @@ export const abi = [
           },
           {
             name: 'primaryFillerDeadline',
-            type: 'uint256',
-            internalType: 'uint256',
+            type: 'uint64',
+            internalType: 'uint64',
           },
           {
             name: 'deadline',
-            type: 'uint256',
-            internalType: 'uint256',
+            type: 'uint64',
+            internalType: 'uint64',
           },
           {
             name: 'callRecipient',
-            type: 'tuple',
-            internalType: 'struct bytes64',
-            components: [
-              {
-                name: 'lower',
-                type: 'bytes32',
-                internalType: 'bytes32',
-              },
-              {
-                name: 'upper',
-                type: 'bytes32',
-                internalType: 'bytes32',
-              },
-            ],
+            type: 'bytes32',
+            internalType: 'bytes32',
           },
           {
             name: 'callData',
@@ -685,104 +523,37 @@ export const abi = [
   },
   {
     type: 'function',
-    name: 'getPeer',
-    inputs: [
-      {
-        name: 'chainSelector',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
-    ],
-    outputs: [
-      {
-        name: '',
-        type: 'tuple',
-        internalType: 'struct bytes64',
-        components: [
-          {
-            name: 'lower',
-            type: 'bytes32',
-            internalType: 'bytes32',
-          },
-          {
-            name: 'upper',
-            type: 'bytes32',
-            internalType: 'bytes32',
-          },
-        ],
-      },
-    ],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
     name: 'hashOrder',
     inputs: [
       {
         name: 'order',
         type: 'tuple',
-        internalType: 'struct Validator.Order',
+        internalType: 'struct Root.Order',
         components: [
           {
             name: 'user',
-            type: 'tuple',
-            internalType: 'struct bytes64',
-            components: [
-              {
-                name: 'lower',
-                type: 'bytes32',
-                internalType: 'bytes32',
-              },
-              {
-                name: 'upper',
-                type: 'bytes32',
-                internalType: 'bytes32',
-              },
-            ],
+            type: 'bytes32',
+            internalType: 'bytes32',
           },
           {
             name: 'filler',
-            type: 'tuple',
-            internalType: 'struct bytes64',
-            components: [
-              {
-                name: 'lower',
-                type: 'bytes32',
-                internalType: 'bytes32',
-              },
-              {
-                name: 'upper',
-                type: 'bytes32',
-                internalType: 'bytes32',
-              },
-            ],
+            type: 'bytes32',
+            internalType: 'bytes32',
           },
           {
             name: 'inputs',
             type: 'tuple[]',
-            internalType: 'struct Validator.Token[]',
+            internalType: 'struct Root.Token[]',
             components: [
               {
                 name: 'tokenType',
                 type: 'uint8',
-                internalType: 'enum Validator.Type',
+                internalType: 'enum Root.Type',
               },
               {
                 name: 'tokenAddress',
-                type: 'tuple',
-                internalType: 'struct bytes64',
-                components: [
-                  {
-                    name: 'lower',
-                    type: 'bytes32',
-                    internalType: 'bytes32',
-                  },
-                  {
-                    name: 'upper',
-                    type: 'bytes32',
-                    internalType: 'bytes32',
-                  },
-                ],
+                type: 'bytes32',
+                internalType: 'bytes32',
               },
               {
                 name: 'tokenId',
@@ -799,29 +570,17 @@ export const abi = [
           {
             name: 'outputs',
             type: 'tuple[]',
-            internalType: 'struct Validator.Token[]',
+            internalType: 'struct Root.Token[]',
             components: [
               {
                 name: 'tokenType',
                 type: 'uint8',
-                internalType: 'enum Validator.Type',
+                internalType: 'enum Root.Type',
               },
               {
                 name: 'tokenAddress',
-                type: 'tuple',
-                internalType: 'struct bytes64',
-                components: [
-                  {
-                    name: 'lower',
-                    type: 'bytes32',
-                    internalType: 'bytes32',
-                  },
-                  {
-                    name: 'upper',
-                    type: 'bytes32',
-                    internalType: 'bytes32',
-                  },
-                ],
+                type: 'bytes32',
+                internalType: 'bytes32',
               },
               {
                 name: 'tokenId',
@@ -836,14 +595,14 @@ export const abi = [
             ],
           },
           {
-            name: 'sourceChainSelector',
-            type: 'uint256',
-            internalType: 'uint256',
+            name: 'sourceChainEid',
+            type: 'uint32',
+            internalType: 'uint32',
           },
           {
-            name: 'destinationChainSelector',
-            type: 'uint256',
-            internalType: 'uint256',
+            name: 'destinationChainEid',
+            type: 'uint32',
+            internalType: 'uint32',
           },
           {
             name: 'sponsored',
@@ -852,30 +611,18 @@ export const abi = [
           },
           {
             name: 'primaryFillerDeadline',
-            type: 'uint256',
-            internalType: 'uint256',
+            type: 'uint64',
+            internalType: 'uint64',
           },
           {
             name: 'deadline',
-            type: 'uint256',
-            internalType: 'uint256',
+            type: 'uint64',
+            internalType: 'uint64',
           },
           {
             name: 'callRecipient',
-            type: 'tuple',
-            internalType: 'struct bytes64',
-            components: [
-              {
-                name: 'lower',
-                type: 'bytes32',
-                internalType: 'bytes32',
-              },
-              {
-                name: 'upper',
-                type: 'bytes32',
-                internalType: 'bytes32',
-              },
-            ],
+            type: 'bytes32',
+            internalType: 'bytes32',
           },
           {
             name: 'callData',
@@ -896,13 +643,133 @@ export const abi = [
   },
   {
     type: 'function',
+    name: 'isComposeMsgSender',
+    inputs: [
+      {
+        name: '',
+        type: 'tuple',
+        internalType: 'struct Origin',
+        components: [
+          {
+            name: 'srcEid',
+            type: 'uint32',
+            internalType: 'uint32',
+          },
+          {
+            name: 'sender',
+            type: 'bytes32',
+            internalType: 'bytes32',
+          },
+          {
+            name: 'nonce',
+            type: 'uint64',
+            internalType: 'uint64',
+          },
+        ],
+      },
+      {
+        name: '',
+        type: 'bytes',
+        internalType: 'bytes',
+      },
+      {
+        name: '_sender',
+        type: 'address',
+        internalType: 'address',
+      },
+    ],
+    outputs: [
+      {
+        name: '',
+        type: 'bool',
+        internalType: 'bool',
+      },
+    ],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    name: 'lzReceive',
+    inputs: [
+      {
+        name: '_origin',
+        type: 'tuple',
+        internalType: 'struct Origin',
+        components: [
+          {
+            name: 'srcEid',
+            type: 'uint32',
+            internalType: 'uint32',
+          },
+          {
+            name: 'sender',
+            type: 'bytes32',
+            internalType: 'bytes32',
+          },
+          {
+            name: 'nonce',
+            type: 'uint64',
+            internalType: 'uint64',
+          },
+        ],
+      },
+      {
+        name: '_guid',
+        type: 'bytes32',
+        internalType: 'bytes32',
+      },
+      {
+        name: '_message',
+        type: 'bytes',
+        internalType: 'bytes',
+      },
+      {
+        name: '_executor',
+        type: 'address',
+        internalType: 'address',
+      },
+      {
+        name: '_extraData',
+        type: 'bytes',
+        internalType: 'bytes',
+      },
+    ],
+    outputs: [],
+    stateMutability: 'payable',
+  },
+  {
+    type: 'function',
     name: 'maxOrderDeadline',
     inputs: [],
     outputs: [
       {
         name: '',
-        type: 'uint256',
-        internalType: 'uint256',
+        type: 'uint64',
+        internalType: 'uint64',
+      },
+    ],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    name: 'nextNonce',
+    inputs: [
+      {
+        name: '',
+        type: 'uint32',
+        internalType: 'uint32',
+      },
+      {
+        name: '',
+        type: 'bytes32',
+        internalType: 'bytes32',
+      },
+    ],
+    outputs: [
+      {
+        name: 'nonce',
+        type: 'uint64',
+        internalType: 'uint64',
       },
     ],
     stateMutability: 'view',
@@ -914,8 +781,26 @@ export const abi = [
     outputs: [
       {
         name: '',
-        type: 'uint256',
-        internalType: 'uint256',
+        type: 'uint64',
+        internalType: 'uint64',
+      },
+    ],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    name: 'oAppVersion',
+    inputs: [],
+    outputs: [
+      {
+        name: 'senderVersion',
+        type: 'uint64',
+        internalType: 'uint64',
+      },
+      {
+        name: 'receiverVersion',
+        type: 'uint64',
+        internalType: 'uint64',
       },
     ],
     stateMutability: 'view',
@@ -1046,7 +931,7 @@ export const abi = [
       {
         name: 'status',
         type: 'uint8',
-        internalType: 'enum Validator.Status',
+        internalType: 'enum Root.Status',
       },
     ],
     stateMutability: 'view',
@@ -1069,126 +954,19 @@ export const abi = [
     name: 'peers',
     inputs: [
       {
-        name: '',
-        type: 'uint256',
-        internalType: 'uint256',
+        name: 'eid',
+        type: 'uint32',
+        internalType: 'uint32',
       },
     ],
     outputs: [
       {
-        name: 'lower',
-        type: 'bytes32',
-        internalType: 'bytes32',
-      },
-      {
-        name: 'upper',
+        name: 'peer',
         type: 'bytes32',
         internalType: 'bytes32',
       },
     ],
     stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    name: 'pendingOwner',
-    inputs: [],
-    outputs: [
-      {
-        name: '',
-        type: 'address',
-        internalType: 'address',
-      },
-    ],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    name: 'receiveMessage',
-    inputs: [
-      {
-        name: 'dispatcher',
-        type: 'address',
-        internalType: 'address',
-      },
-      {
-        name: 'message',
-        type: 'tuple',
-        internalType: 'struct iLayerMessage',
-        components: [
-          {
-            name: 'blockNumber',
-            type: 'uint256',
-            internalType: 'uint256',
-          },
-          {
-            name: 'blockConfirmations',
-            type: 'uint16',
-            internalType: 'uint16',
-          },
-          {
-            name: 'sourceChainSelector',
-            type: 'uint256',
-            internalType: 'uint256',
-          },
-          {
-            name: 'sender',
-            type: 'tuple',
-            internalType: 'struct bytes64',
-            components: [
-              {
-                name: 'lower',
-                type: 'bytes32',
-                internalType: 'bytes32',
-              },
-              {
-                name: 'upper',
-                type: 'bytes32',
-                internalType: 'bytes32',
-              },
-            ],
-          },
-          {
-            name: 'destinationChainSelector',
-            type: 'uint256',
-            internalType: 'uint256',
-          },
-          {
-            name: 'receiver',
-            type: 'tuple',
-            internalType: 'struct bytes64',
-            components: [
-              {
-                name: 'lower',
-                type: 'bytes32',
-                internalType: 'bytes32',
-              },
-              {
-                name: 'upper',
-                type: 'bytes32',
-                internalType: 'bytes32',
-              },
-            ],
-          },
-          {
-            name: 'hashedData',
-            type: 'bytes32',
-            internalType: 'bytes32',
-          },
-        ],
-      },
-      {
-        name: 'messageData',
-        type: 'bytes',
-        internalType: 'bytes',
-      },
-      {
-        name: 'extraData',
-        type: 'bytes',
-        internalType: 'bytes',
-      },
-    ],
-    outputs: [],
-    stateMutability: 'payable',
   },
   {
     type: 'function',
@@ -1208,8 +986,8 @@ export const abi = [
       },
       {
         name: 'nonce',
-        type: 'uint256',
-        internalType: 'uint256',
+        type: 'uint64',
+        internalType: 'uint64',
       },
     ],
     outputs: [
@@ -1223,15 +1001,10 @@ export const abi = [
   },
   {
     type: 'function',
-    name: 'setExecutor',
+    name: 'setDelegate',
     inputs: [
       {
-        name: 'chain',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
-      {
-        name: 'executor',
+        name: '_delegate',
         type: 'address',
         internalType: 'address',
       },
@@ -1245,8 +1018,26 @@ export const abi = [
     inputs: [
       {
         name: 'newMaxOrderDeadline',
-        type: 'uint256',
-        internalType: 'uint256',
+        type: 'uint64',
+        internalType: 'uint64',
+      },
+    ],
+    outputs: [],
+    stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
+    name: 'setPeer',
+    inputs: [
+      {
+        name: '_eid',
+        type: 'uint32',
+        internalType: 'uint32',
+      },
+      {
+        name: '_peer',
+        type: 'bytes32',
+        internalType: 'bytes32',
       },
     ],
     outputs: [],
@@ -1258,8 +1049,8 @@ export const abi = [
     inputs: [
       {
         name: 'newTimeBuffer',
-        type: 'uint256',
-        internalType: 'uint256',
+        type: 'uint64',
+        internalType: 'uint64',
       },
     ],
     outputs: [],
@@ -1291,8 +1082,8 @@ export const abi = [
     outputs: [
       {
         name: '',
-        type: 'uint256',
-        internalType: 'uint256',
+        type: 'uint64',
+        internalType: 'uint64',
       },
     ],
     stateMutability: 'view',
@@ -1317,68 +1108,32 @@ export const abi = [
       {
         name: 'order',
         type: 'tuple',
-        internalType: 'struct Validator.Order',
+        internalType: 'struct Root.Order',
         components: [
           {
             name: 'user',
-            type: 'tuple',
-            internalType: 'struct bytes64',
-            components: [
-              {
-                name: 'lower',
-                type: 'bytes32',
-                internalType: 'bytes32',
-              },
-              {
-                name: 'upper',
-                type: 'bytes32',
-                internalType: 'bytes32',
-              },
-            ],
+            type: 'bytes32',
+            internalType: 'bytes32',
           },
           {
             name: 'filler',
-            type: 'tuple',
-            internalType: 'struct bytes64',
-            components: [
-              {
-                name: 'lower',
-                type: 'bytes32',
-                internalType: 'bytes32',
-              },
-              {
-                name: 'upper',
-                type: 'bytes32',
-                internalType: 'bytes32',
-              },
-            ],
+            type: 'bytes32',
+            internalType: 'bytes32',
           },
           {
             name: 'inputs',
             type: 'tuple[]',
-            internalType: 'struct Validator.Token[]',
+            internalType: 'struct Root.Token[]',
             components: [
               {
                 name: 'tokenType',
                 type: 'uint8',
-                internalType: 'enum Validator.Type',
+                internalType: 'enum Root.Type',
               },
               {
                 name: 'tokenAddress',
-                type: 'tuple',
-                internalType: 'struct bytes64',
-                components: [
-                  {
-                    name: 'lower',
-                    type: 'bytes32',
-                    internalType: 'bytes32',
-                  },
-                  {
-                    name: 'upper',
-                    type: 'bytes32',
-                    internalType: 'bytes32',
-                  },
-                ],
+                type: 'bytes32',
+                internalType: 'bytes32',
               },
               {
                 name: 'tokenId',
@@ -1395,29 +1150,17 @@ export const abi = [
           {
             name: 'outputs',
             type: 'tuple[]',
-            internalType: 'struct Validator.Token[]',
+            internalType: 'struct Root.Token[]',
             components: [
               {
                 name: 'tokenType',
                 type: 'uint8',
-                internalType: 'enum Validator.Type',
+                internalType: 'enum Root.Type',
               },
               {
                 name: 'tokenAddress',
-                type: 'tuple',
-                internalType: 'struct bytes64',
-                components: [
-                  {
-                    name: 'lower',
-                    type: 'bytes32',
-                    internalType: 'bytes32',
-                  },
-                  {
-                    name: 'upper',
-                    type: 'bytes32',
-                    internalType: 'bytes32',
-                  },
-                ],
+                type: 'bytes32',
+                internalType: 'bytes32',
               },
               {
                 name: 'tokenId',
@@ -1432,14 +1175,14 @@ export const abi = [
             ],
           },
           {
-            name: 'sourceChainSelector',
-            type: 'uint256',
-            internalType: 'uint256',
+            name: 'sourceChainEid',
+            type: 'uint32',
+            internalType: 'uint32',
           },
           {
-            name: 'destinationChainSelector',
-            type: 'uint256',
-            internalType: 'uint256',
+            name: 'destinationChainEid',
+            type: 'uint32',
+            internalType: 'uint32',
           },
           {
             name: 'sponsored',
@@ -1448,30 +1191,18 @@ export const abi = [
           },
           {
             name: 'primaryFillerDeadline',
-            type: 'uint256',
-            internalType: 'uint256',
+            type: 'uint64',
+            internalType: 'uint64',
           },
           {
             name: 'deadline',
-            type: 'uint256',
-            internalType: 'uint256',
+            type: 'uint64',
+            internalType: 'uint64',
           },
           {
             name: 'callRecipient',
-            type: 'tuple',
-            internalType: 'struct bytes64',
-            components: [
-              {
-                name: 'lower',
-                type: 'bytes32',
-                internalType: 'bytes32',
-              },
-              {
-                name: 'upper',
-                type: 'bytes32',
-                internalType: 'bytes32',
-              },
-            ],
+            type: 'bytes32',
+            internalType: 'bytes32',
           },
           {
             name: 'callData',
@@ -1502,68 +1233,32 @@ export const abi = [
       {
         name: 'order',
         type: 'tuple',
-        internalType: 'struct Validator.Order',
+        internalType: 'struct Root.Order',
         components: [
           {
             name: 'user',
-            type: 'tuple',
-            internalType: 'struct bytes64',
-            components: [
-              {
-                name: 'lower',
-                type: 'bytes32',
-                internalType: 'bytes32',
-              },
-              {
-                name: 'upper',
-                type: 'bytes32',
-                internalType: 'bytes32',
-              },
-            ],
+            type: 'bytes32',
+            internalType: 'bytes32',
           },
           {
             name: 'filler',
-            type: 'tuple',
-            internalType: 'struct bytes64',
-            components: [
-              {
-                name: 'lower',
-                type: 'bytes32',
-                internalType: 'bytes32',
-              },
-              {
-                name: 'upper',
-                type: 'bytes32',
-                internalType: 'bytes32',
-              },
-            ],
+            type: 'bytes32',
+            internalType: 'bytes32',
           },
           {
             name: 'inputs',
             type: 'tuple[]',
-            internalType: 'struct Validator.Token[]',
+            internalType: 'struct Root.Token[]',
             components: [
               {
                 name: 'tokenType',
                 type: 'uint8',
-                internalType: 'enum Validator.Type',
+                internalType: 'enum Root.Type',
               },
               {
                 name: 'tokenAddress',
-                type: 'tuple',
-                internalType: 'struct bytes64',
-                components: [
-                  {
-                    name: 'lower',
-                    type: 'bytes32',
-                    internalType: 'bytes32',
-                  },
-                  {
-                    name: 'upper',
-                    type: 'bytes32',
-                    internalType: 'bytes32',
-                  },
-                ],
+                type: 'bytes32',
+                internalType: 'bytes32',
               },
               {
                 name: 'tokenId',
@@ -1580,29 +1275,17 @@ export const abi = [
           {
             name: 'outputs',
             type: 'tuple[]',
-            internalType: 'struct Validator.Token[]',
+            internalType: 'struct Root.Token[]',
             components: [
               {
                 name: 'tokenType',
                 type: 'uint8',
-                internalType: 'enum Validator.Type',
+                internalType: 'enum Root.Type',
               },
               {
                 name: 'tokenAddress',
-                type: 'tuple',
-                internalType: 'struct bytes64',
-                components: [
-                  {
-                    name: 'lower',
-                    type: 'bytes32',
-                    internalType: 'bytes32',
-                  },
-                  {
-                    name: 'upper',
-                    type: 'bytes32',
-                    internalType: 'bytes32',
-                  },
-                ],
+                type: 'bytes32',
+                internalType: 'bytes32',
               },
               {
                 name: 'tokenId',
@@ -1617,14 +1300,14 @@ export const abi = [
             ],
           },
           {
-            name: 'sourceChainSelector',
-            type: 'uint256',
-            internalType: 'uint256',
+            name: 'sourceChainEid',
+            type: 'uint32',
+            internalType: 'uint32',
           },
           {
-            name: 'destinationChainSelector',
-            type: 'uint256',
-            internalType: 'uint256',
+            name: 'destinationChainEid',
+            type: 'uint32',
+            internalType: 'uint32',
           },
           {
             name: 'sponsored',
@@ -1633,30 +1316,18 @@ export const abi = [
           },
           {
             name: 'primaryFillerDeadline',
-            type: 'uint256',
-            internalType: 'uint256',
+            type: 'uint64',
+            internalType: 'uint64',
           },
           {
             name: 'deadline',
-            type: 'uint256',
-            internalType: 'uint256',
+            type: 'uint64',
+            internalType: 'uint64',
           },
           {
             name: 'callRecipient',
-            type: 'tuple',
-            internalType: 'struct bytes64',
-            components: [
-              {
-                name: 'lower',
-                type: 'bytes32',
-                internalType: 'bytes32',
-              },
-              {
-                name: 'upper',
-                type: 'bytes32',
-                internalType: 'bytes32',
-              },
-            ],
+            type: 'bytes32',
+            internalType: 'bytes32',
           },
           {
             name: 'callData',
@@ -1667,8 +1338,8 @@ export const abi = [
       },
       {
         name: 'orderNonce',
-        type: 'uint256',
-        internalType: 'uint256',
+        type: 'uint64',
+        internalType: 'uint64',
       },
     ],
     outputs: [],
@@ -1781,58 +1452,271 @@ export const abi = [
   },
   {
     type: 'event',
-    name: 'ExecutorUpdated',
-    inputs: [
-      {
-        name: 'chainId',
-        type: 'uint256',
-        indexed: true,
-        internalType: 'uint256',
-      },
-      {
-        name: 'oldExecutor',
-        type: 'address',
-        indexed: true,
-        internalType: 'address',
-      },
-      {
-        name: 'newExecutor',
-        type: 'address',
-        indexed: true,
-        internalType: 'address',
-      },
-    ],
-    anonymous: false,
-  },
-  {
-    type: 'event',
     name: 'MaxOrderDeadlineUpdated',
     inputs: [
       {
         name: 'oldDeadline',
-        type: 'uint256',
+        type: 'uint64',
         indexed: false,
-        internalType: 'uint256',
+        internalType: 'uint64',
       },
       {
         name: 'newDeadline',
-        type: 'uint256',
+        type: 'uint64',
         indexed: false,
-        internalType: 'uint256',
+        internalType: 'uint64',
       },
     ],
     anonymous: false,
   },
-  orderCreatedEventAbi,
   {
     type: 'event',
-    name: 'OrderFilled',
+    name: 'OrderCreated',
     inputs: [
       {
         name: 'orderId',
         type: 'bytes32',
         indexed: true,
         internalType: 'bytes32',
+      },
+      {
+        name: 'nonce',
+        type: 'uint64',
+        indexed: false,
+        internalType: 'uint64',
+      },
+      {
+        name: 'order',
+        type: 'tuple',
+        indexed: false,
+        internalType: 'struct Root.Order',
+        components: [
+          {
+            name: 'user',
+            type: 'bytes32',
+            internalType: 'bytes32',
+          },
+          {
+            name: 'filler',
+            type: 'bytes32',
+            internalType: 'bytes32',
+          },
+          {
+            name: 'inputs',
+            type: 'tuple[]',
+            internalType: 'struct Root.Token[]',
+            components: [
+              {
+                name: 'tokenType',
+                type: 'uint8',
+                internalType: 'enum Root.Type',
+              },
+              {
+                name: 'tokenAddress',
+                type: 'bytes32',
+                internalType: 'bytes32',
+              },
+              {
+                name: 'tokenId',
+                type: 'uint256',
+                internalType: 'uint256',
+              },
+              {
+                name: 'amount',
+                type: 'uint256',
+                internalType: 'uint256',
+              },
+            ],
+          },
+          {
+            name: 'outputs',
+            type: 'tuple[]',
+            internalType: 'struct Root.Token[]',
+            components: [
+              {
+                name: 'tokenType',
+                type: 'uint8',
+                internalType: 'enum Root.Type',
+              },
+              {
+                name: 'tokenAddress',
+                type: 'bytes32',
+                internalType: 'bytes32',
+              },
+              {
+                name: 'tokenId',
+                type: 'uint256',
+                internalType: 'uint256',
+              },
+              {
+                name: 'amount',
+                type: 'uint256',
+                internalType: 'uint256',
+              },
+            ],
+          },
+          {
+            name: 'sourceChainEid',
+            type: 'uint32',
+            internalType: 'uint32',
+          },
+          {
+            name: 'destinationChainEid',
+            type: 'uint32',
+            internalType: 'uint32',
+          },
+          {
+            name: 'sponsored',
+            type: 'bool',
+            internalType: 'bool',
+          },
+          {
+            name: 'primaryFillerDeadline',
+            type: 'uint64',
+            internalType: 'uint64',
+          },
+          {
+            name: 'deadline',
+            type: 'uint64',
+            internalType: 'uint64',
+          },
+          {
+            name: 'callRecipient',
+            type: 'bytes32',
+            internalType: 'bytes32',
+          },
+          {
+            name: 'callData',
+            type: 'bytes',
+            internalType: 'bytes',
+          },
+        ],
+      },
+      {
+        name: 'calller',
+        type: 'address',
+        indexed: true,
+        internalType: 'address',
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: 'event',
+    name: 'OrderSettled',
+    inputs: [
+      {
+        name: 'orderId',
+        type: 'bytes32',
+        indexed: true,
+        internalType: 'bytes32',
+      },
+      {
+        name: 'order',
+        type: 'tuple',
+        indexed: true,
+        internalType: 'struct Root.Order',
+        components: [
+          {
+            name: 'user',
+            type: 'bytes32',
+            internalType: 'bytes32',
+          },
+          {
+            name: 'filler',
+            type: 'bytes32',
+            internalType: 'bytes32',
+          },
+          {
+            name: 'inputs',
+            type: 'tuple[]',
+            internalType: 'struct Root.Token[]',
+            components: [
+              {
+                name: 'tokenType',
+                type: 'uint8',
+                internalType: 'enum Root.Type',
+              },
+              {
+                name: 'tokenAddress',
+                type: 'bytes32',
+                internalType: 'bytes32',
+              },
+              {
+                name: 'tokenId',
+                type: 'uint256',
+                internalType: 'uint256',
+              },
+              {
+                name: 'amount',
+                type: 'uint256',
+                internalType: 'uint256',
+              },
+            ],
+          },
+          {
+            name: 'outputs',
+            type: 'tuple[]',
+            internalType: 'struct Root.Token[]',
+            components: [
+              {
+                name: 'tokenType',
+                type: 'uint8',
+                internalType: 'enum Root.Type',
+              },
+              {
+                name: 'tokenAddress',
+                type: 'bytes32',
+                internalType: 'bytes32',
+              },
+              {
+                name: 'tokenId',
+                type: 'uint256',
+                internalType: 'uint256',
+              },
+              {
+                name: 'amount',
+                type: 'uint256',
+                internalType: 'uint256',
+              },
+            ],
+          },
+          {
+            name: 'sourceChainEid',
+            type: 'uint32',
+            internalType: 'uint32',
+          },
+          {
+            name: 'destinationChainEid',
+            type: 'uint32',
+            internalType: 'uint32',
+          },
+          {
+            name: 'sponsored',
+            type: 'bool',
+            internalType: 'bool',
+          },
+          {
+            name: 'primaryFillerDeadline',
+            type: 'uint64',
+            internalType: 'uint64',
+          },
+          {
+            name: 'deadline',
+            type: 'uint64',
+            internalType: 'uint64',
+          },
+          {
+            name: 'callRecipient',
+            type: 'bytes32',
+            internalType: 'bytes32',
+          },
+          {
+            name: 'callData',
+            type: 'bytes',
+            internalType: 'bytes',
+          },
+        ],
       },
     ],
     anonymous: false,
@@ -1849,25 +1733,6 @@ export const abi = [
       },
       {
         name: 'caller',
-        type: 'address',
-        indexed: false,
-        internalType: 'address',
-      },
-    ],
-    anonymous: false,
-  },
-  {
-    type: 'event',
-    name: 'OwnershipTransferStarted',
-    inputs: [
-      {
-        name: 'previousOwner',
-        type: 'address',
-        indexed: true,
-        internalType: 'address',
-      },
-      {
-        name: 'newOwner',
         type: 'address',
         indexed: true,
         internalType: 'address',
@@ -1896,19 +1761,38 @@ export const abi = [
   },
   {
     type: 'event',
+    name: 'PeerSet',
+    inputs: [
+      {
+        name: 'eid',
+        type: 'uint32',
+        indexed: false,
+        internalType: 'uint32',
+      },
+      {
+        name: 'peer',
+        type: 'bytes32',
+        indexed: false,
+        internalType: 'bytes32',
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: 'event',
     name: 'TimeBufferUpdated',
     inputs: [
       {
         name: 'oldTimeBufferVal',
-        type: 'uint256',
+        type: 'uint64',
         indexed: false,
-        internalType: 'uint256',
+        internalType: 'uint64',
       },
       {
         name: 'newTimeBufferVal',
-        type: 'uint256',
+        type: 'uint64',
         indexed: false,
-        internalType: 'uint256',
+        internalType: 'uint64',
       },
     ],
     anonymous: false,
@@ -1916,6 +1800,16 @@ export const abi = [
   {
     type: 'error',
     name: 'InvalidDeadline',
+    inputs: [],
+  },
+  {
+    type: 'error',
+    name: 'InvalidDelegate',
+    inputs: [],
+  },
+  {
+    type: 'error',
+    name: 'InvalidEndpointCall',
     inputs: [],
   },
   {
@@ -1930,21 +1824,21 @@ export const abi = [
   },
   {
     type: 'error',
-    name: 'InvalidPeer',
+    name: 'NoPeer',
     inputs: [
       {
-        name: 'chainSelector',
-        type: 'uint256',
-        internalType: 'uint256',
+        name: 'eid',
+        type: 'uint32',
+        internalType: 'uint32',
       },
     ],
   },
   {
     type: 'error',
-    name: 'InvalidRouter',
+    name: 'OnlyEndpoint',
     inputs: [
       {
-        name: 'router',
+        name: 'addr',
         type: 'address',
         internalType: 'address',
       },
@@ -1952,27 +1846,23 @@ export const abi = [
   },
   {
     type: 'error',
-    name: 'InvalidSender',
-    inputs: [],
-  },
-  {
-    type: 'error',
-    name: 'InvalidSourceChain',
-    inputs: [],
-  },
-  {
-    type: 'error',
-    name: 'InvalidUser',
-    inputs: [],
+    name: 'OnlyPeer',
+    inputs: [
+      {
+        name: 'eid',
+        type: 'uint32',
+        internalType: 'uint32',
+      },
+      {
+        name: 'sender',
+        type: 'bytes32',
+        internalType: 'bytes32',
+      },
+    ],
   },
   {
     type: 'error',
     name: 'OrderCannotBeFilled',
-    inputs: [],
-  },
-  {
-    type: 'error',
-    name: 'OrderCannotBeSettled',
     inputs: [],
   },
   {
@@ -2039,11 +1929,6 @@ export const abi = [
   },
   {
     type: 'error',
-    name: 'RouterAddressCannotBeZero',
-    inputs: [],
-  },
-  {
-    type: 'error',
     name: 'SafeERC20FailedOperation',
     inputs: [
       {
@@ -2052,16 +1937,6 @@ export const abi = [
         internalType: 'address',
       },
     ],
-  },
-  {
-    type: 'error',
-    name: 'Unauthorized',
-    inputs: [],
-  },
-  {
-    type: 'error',
-    name: 'UnprocessableOrder',
-    inputs: [],
   },
   {
     type: 'error',

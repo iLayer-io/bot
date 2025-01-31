@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
-import { BlockchainFillerService } from './blockchain-filler.service';
+import { BlockchainFillerService } from './blockchain-filler.service.js';
 
 @Module({
-  providers: [BlockchainFillerService]
+  providers: [BlockchainFillerService],
 })
 export class BlockchainFillerModule {}
