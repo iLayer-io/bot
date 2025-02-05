@@ -1,8 +1,15 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { BotChain, CustomConfigService } from '../config/config.service.js';
-import { OrderHubLog, ViemService } from '../viem/viem.service.js';
+import {
+  OrderCreatedEvent,
+  OrderHubLog,
+  OrderSettledEvent,
+  OrderWithdrawnEvent,
+  ViemService,
+} from '../viem/viem.service.js';
 import { PrismaService } from '../prisma.service.js';
 import { Logger } from '@nestjs/common';
+import { Log } from 'viem';
 
 @Injectable()
 export class BlockchainListenerService implements OnModuleInit {
@@ -58,7 +65,7 @@ export class BlockchainListenerService implements OnModuleInit {
       // TODO FIXME Add OrderSpoke OrderFilled event listener
       return this.viemService.watcOrderHubLogs({
         chainName: chain.name,
-        fromBlock: fromBlock,
+        fromBlock: 0n,
         onLog: async (log) => {
           await this.handleLog({ log, chain });
         },
@@ -74,23 +81,21 @@ export class BlockchainListenerService implements OnModuleInit {
     log: OrderHubLog;
     chain: BotChain;
   }) {
-    // await this.prismaService.order.create({
-    //   data: {
-    //     chain_id: chain.chain_id,
-    //     deadline: log.arg,
-    //     destination_chain_selector: log.destinationChainSelector,
-    //     filler: log.filler,
-    //     order_id: log.orderId,
-    //     order_status: order_status.Created,
-    //     primary_filler_deadline: log.primaryFillerDeadline,
-    //     source_chain_selector: log.sourceChainSelector,
-    //     sponsored: log.sponsored,
-    //     user: log.user,
-    //     call_data: log.callData,
-    //     call_recipient: log.callRecipient,
-    //   },
-    //   select: { id: true },
-    // });
+    this.logger.log({ message: 'handling log', log });
+    switch (log.eventName) {
+      case 'OrderCreated': {
+        await this.handleOrderCreated({ log: log as OrderCreatedEvent, chain });
+        break;
+      }
+      // case 'OrderWithdrawn': {
+      //   await this.handleOrderWithdrawn({ log, chain });
+      //   break;
+      // }
+      // case 'OrderSettled': {
+      //   await this.handleOrderSettled({ log, chain });
+      //   break;
+      // }
+    }
 
     const exists = await this.prismaService.block_checkpoint.findFirst({
       where: { height: log.blockNumber, chain_id: chain.chain_id },
@@ -105,5 +110,104 @@ export class BlockchainListenerService implements OnModuleInit {
     }
 
     // TODO FIXME Emit to Filler
+  }
+
+  private async handleOrderCreated({
+    log,
+    chain,
+  }: {
+    log: OrderCreatedEvent;
+    chain: BotChain;
+  }) {
+    this.logger.log({ message: 'event created', log });
+    // TODO Create if it doesnt exists
+    const deadline_number = Number(log.args.order!.deadline);
+    const deadline = new Date(deadline_number);
+
+    const primary_filler_deadline_number = Number(
+      log.args.order!.primaryFillerDeadline,
+    );
+    const primary_filler_deadline = new Date(primary_filler_deadline_number);
+
+    const filler = new Uint8Array(
+      Buffer.from(log.args.order!.filler.slice(2), 'hex'),
+    );
+
+    const orderId = new Uint8Array(
+      Buffer.from(log.args.orderId!.slice(2), 'hex'),
+    );
+
+    const callData = new Uint8Array(
+      Buffer.from(log.args.order!.callData.slice(2), 'hex'),
+    );
+
+    const callRecipient = new Uint8Array(
+      Buffer.from(log.args.order!.callRecipient.slice(2), 'hex'),
+    );
+
+    const calller = new Uint8Array(
+      Buffer.from(log.args.calller!.slice(2), 'hex'),
+    );
+
+    const existingOrder = await this.prismaService.order.findFirst({
+      where: {
+        chain_id: chain.chain_id,
+        order_id: orderId,
+      },
+    });
+
+    if (existingOrder) {
+      this.logger.log({
+        message: 'Order already exists',
+        orderId: Buffer.from(orderId).toString('hex'),
+        chainId: chain.chain_id,
+      });
+      return;
+    }
+
+    // TODO FIXME best practice lower or camel for prisma?
+    await this.prismaService.order.create({
+      data: {
+        chain_id: chain.chain_id,
+        deadline: deadline,
+        destination_chain_selector: log.args.order!.destinationChainEid,
+        source_chain_selector: log.args.order!.sourceChainEid,
+        filler: filler,
+        order_id: orderId,
+        order_status: 'Created',
+        primary_filler_deadline: primary_filler_deadline,
+        sponsored: log.args.order!.sponsored,
+        call_data: callData,
+        call_recipient: callRecipient,
+        user: calller,
+      },
+      select: { id: true },
+    });
+
+    this.logger.log({
+      message: 'Order created!',
+      orderId: Buffer.from(orderId).toString('hex'),
+      chainId: chain.chain_id,
+    });
+  }
+
+  private async handleOrderWithdrawn({
+    log,
+    chain,
+  }: {
+    log: OrderWithdrawnEvent;
+    chain: BotChain;
+  }) {
+    // TODO find by chain_id and order_id and update status
+  }
+
+  private async handleOrderSettled({
+    log,
+    chain,
+  }: {
+    log: OrderSettledEvent;
+    chain: BotChain;
+  }) {
+    // TODO find by chain_id and order_id and update status
   }
 }

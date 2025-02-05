@@ -134,40 +134,8 @@ export const orderCreatedEventAbi = {
 export const abi = [
   {
     type: 'constructor',
-    inputs: [
-      {
-        name: '_router',
-        type: 'address',
-        internalType: 'address',
-      },
-    ],
+    inputs: [],
     stateMutability: 'nonpayable',
-  },
-  {
-    type: 'function',
-    name: 'DOMAIN_SEPARATOR',
-    inputs: [],
-    outputs: [
-      {
-        name: '',
-        type: 'bytes32',
-        internalType: 'bytes32',
-      },
-    ],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    name: 'EIP712_DOMAIN_TYPEHASH',
-    inputs: [],
-    outputs: [
-      {
-        name: '',
-        type: 'bytes32',
-        internalType: 'bytes32',
-      },
-    ],
-    stateMutability: 'view',
   },
   {
     type: 'function',
@@ -197,48 +165,12 @@ export const abi = [
   },
   {
     type: 'function',
-    name: 'allowInitializePath',
-    inputs: [
-      {
-        name: 'origin',
-        type: 'tuple',
-        internalType: 'struct Origin',
-        components: [
-          {
-            name: 'srcEid',
-            type: 'uint32',
-            internalType: 'uint32',
-          },
-          {
-            name: 'sender',
-            type: 'bytes32',
-            internalType: 'bytes32',
-          },
-          {
-            name: 'nonce',
-            type: 'uint64',
-            internalType: 'uint64',
-          },
-        ],
-      },
-    ],
-    outputs: [
-      {
-        name: '',
-        type: 'bool',
-        internalType: 'bool',
-      },
-    ],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
     name: 'createOrder',
     inputs: [
       {
         name: 'request',
         type: 'tuple',
-        internalType: 'struct OrderHub.OrderRequest',
+        internalType: 'struct OrderHubMock.OrderRequest',
         components: [
           {
             name: 'deadline',
@@ -385,13 +317,56 @@ export const abi = [
   },
   {
     type: 'function',
-    name: 'endpoint',
+    name: 'domainSeparator',
     inputs: [],
     outputs: [
       {
         name: '',
+        type: 'bytes32',
+        internalType: 'bytes32',
+      },
+    ],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    name: 'eip712Domain',
+    inputs: [],
+    outputs: [
+      {
+        name: 'fields',
+        type: 'bytes1',
+        internalType: 'bytes1',
+      },
+      {
+        name: 'name',
+        type: 'string',
+        internalType: 'string',
+      },
+      {
+        name: 'version',
+        type: 'string',
+        internalType: 'string',
+      },
+      {
+        name: 'chainId',
+        type: 'uint256',
+        internalType: 'uint256',
+      },
+      {
+        name: 'verifyingContract',
         type: 'address',
-        internalType: 'contract ILayerZeroEndpointV2',
+        internalType: 'address',
+      },
+      {
+        name: 'salt',
+        type: 'bytes32',
+        internalType: 'bytes32',
+      },
+      {
+        name: 'extensions',
+        type: 'uint256[]',
+        internalType: 'uint256[]',
       },
     ],
     stateMutability: 'view',
@@ -643,102 +618,6 @@ export const abi = [
   },
   {
     type: 'function',
-    name: 'isComposeMsgSender',
-    inputs: [
-      {
-        name: '',
-        type: 'tuple',
-        internalType: 'struct Origin',
-        components: [
-          {
-            name: 'srcEid',
-            type: 'uint32',
-            internalType: 'uint32',
-          },
-          {
-            name: 'sender',
-            type: 'bytes32',
-            internalType: 'bytes32',
-          },
-          {
-            name: 'nonce',
-            type: 'uint64',
-            internalType: 'uint64',
-          },
-        ],
-      },
-      {
-        name: '',
-        type: 'bytes',
-        internalType: 'bytes',
-      },
-      {
-        name: '_sender',
-        type: 'address',
-        internalType: 'address',
-      },
-    ],
-    outputs: [
-      {
-        name: '',
-        type: 'bool',
-        internalType: 'bool',
-      },
-    ],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    name: 'lzReceive',
-    inputs: [
-      {
-        name: '_origin',
-        type: 'tuple',
-        internalType: 'struct Origin',
-        components: [
-          {
-            name: 'srcEid',
-            type: 'uint32',
-            internalType: 'uint32',
-          },
-          {
-            name: 'sender',
-            type: 'bytes32',
-            internalType: 'bytes32',
-          },
-          {
-            name: 'nonce',
-            type: 'uint64',
-            internalType: 'uint64',
-          },
-        ],
-      },
-      {
-        name: '_guid',
-        type: 'bytes32',
-        internalType: 'bytes32',
-      },
-      {
-        name: '_message',
-        type: 'bytes',
-        internalType: 'bytes',
-      },
-      {
-        name: '_executor',
-        type: 'address',
-        internalType: 'address',
-      },
-      {
-        name: '_extraData',
-        type: 'bytes',
-        internalType: 'bytes',
-      },
-    ],
-    outputs: [],
-    stateMutability: 'payable',
-  },
-  {
-    type: 'function',
     name: 'maxOrderDeadline',
     inputs: [],
     outputs: [
@@ -752,53 +631,11 @@ export const abi = [
   },
   {
     type: 'function',
-    name: 'nextNonce',
-    inputs: [
-      {
-        name: '',
-        type: 'uint32',
-        internalType: 'uint32',
-      },
-      {
-        name: '',
-        type: 'bytes32',
-        internalType: 'bytes32',
-      },
-    ],
-    outputs: [
-      {
-        name: 'nonce',
-        type: 'uint64',
-        internalType: 'uint64',
-      },
-    ],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
     name: 'nonce',
     inputs: [],
     outputs: [
       {
         name: '',
-        type: 'uint64',
-        internalType: 'uint64',
-      },
-    ],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    name: 'oAppVersion',
-    inputs: [],
-    outputs: [
-      {
-        name: 'senderVersion',
-        type: 'uint64',
-        internalType: 'uint64',
-      },
-      {
-        name: 'receiverVersion',
         type: 'uint64',
         internalType: 'uint64',
       },
@@ -951,22 +788,16 @@ export const abi = [
   },
   {
     type: 'function',
-    name: 'peers',
+    name: 'receiveCall',
     inputs: [
       {
-        name: 'eid',
-        type: 'uint32',
-        internalType: 'uint32',
+        name: 'payload',
+        type: 'bytes',
+        internalType: 'bytes',
       },
     ],
-    outputs: [
-      {
-        name: 'peer',
-        type: 'bytes32',
-        internalType: 'bytes32',
-      },
-    ],
-    stateMutability: 'view',
+    outputs: [],
+    stateMutability: 'nonpayable',
   },
   {
     type: 'function',
@@ -1001,43 +832,12 @@ export const abi = [
   },
   {
     type: 'function',
-    name: 'setDelegate',
-    inputs: [
-      {
-        name: '_delegate',
-        type: 'address',
-        internalType: 'address',
-      },
-    ],
-    outputs: [],
-    stateMutability: 'nonpayable',
-  },
-  {
-    type: 'function',
     name: 'setMaxOrderDeadline',
     inputs: [
       {
         name: 'newMaxOrderDeadline',
         type: 'uint64',
         internalType: 'uint64',
-      },
-    ],
-    outputs: [],
-    stateMutability: 'nonpayable',
-  },
-  {
-    type: 'function',
-    name: 'setPeer',
-    inputs: [
-      {
-        name: '_eid',
-        type: 'uint32',
-        internalType: 'uint32',
-      },
-      {
-        name: '_peer',
-        type: 'bytes32',
-        internalType: 'bytes32',
       },
     ],
     outputs: [],
@@ -1344,6 +1144,12 @@ export const abi = [
     ],
     outputs: [],
     stateMutability: 'nonpayable',
+  },
+  {
+    type: 'event',
+    name: 'EIP712DomainChanged',
+    inputs: [],
+    anonymous: false,
   },
   {
     type: 'event',
@@ -1761,25 +1567,6 @@ export const abi = [
   },
   {
     type: 'event',
-    name: 'PeerSet',
-    inputs: [
-      {
-        name: 'eid',
-        type: 'uint32',
-        indexed: false,
-        internalType: 'uint32',
-      },
-      {
-        name: 'peer',
-        type: 'bytes32',
-        indexed: false,
-        internalType: 'bytes32',
-      },
-    ],
-    anonymous: false,
-  },
-  {
-    type: 'event',
     name: 'TimeBufferUpdated',
     inputs: [
       {
@@ -1804,16 +1591,6 @@ export const abi = [
   },
   {
     type: 'error',
-    name: 'InvalidDelegate',
-    inputs: [],
-  },
-  {
-    type: 'error',
-    name: 'InvalidEndpointCall',
-    inputs: [],
-  },
-  {
-    type: 'error',
     name: 'InvalidOrderInputApprovals',
     inputs: [],
   },
@@ -1824,41 +1601,8 @@ export const abi = [
   },
   {
     type: 'error',
-    name: 'NoPeer',
-    inputs: [
-      {
-        name: 'eid',
-        type: 'uint32',
-        internalType: 'uint32',
-      },
-    ],
-  },
-  {
-    type: 'error',
-    name: 'OnlyEndpoint',
-    inputs: [
-      {
-        name: 'addr',
-        type: 'address',
-        internalType: 'address',
-      },
-    ],
-  },
-  {
-    type: 'error',
-    name: 'OnlyPeer',
-    inputs: [
-      {
-        name: 'eid',
-        type: 'uint32',
-        internalType: 'uint32',
-      },
-      {
-        name: 'sender',
-        type: 'bytes32',
-        internalType: 'bytes32',
-      },
-    ],
+    name: 'InvalidShortString',
+    inputs: [],
   },
   {
     type: 'error',
@@ -1935,6 +1679,17 @@ export const abi = [
         name: 'token',
         type: 'address',
         internalType: 'address',
+      },
+    ],
+  },
+  {
+    type: 'error',
+    name: 'StringTooLong',
+    inputs: [
+      {
+        name: 'str',
+        type: 'string',
+        internalType: 'string',
       },
     ],
   },

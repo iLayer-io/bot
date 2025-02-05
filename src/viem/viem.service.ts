@@ -18,6 +18,44 @@ import { privateKeyToAccount } from 'viem/accounts';
 import { BotChain, CustomConfigService } from '../config/config.service.js';
 import { abi as orderHubAbi } from './abi/OrderHub.abi.js';
 
+// type OrderCreatedEvent = ExtractEventArgs<typeof orderHubAbi, 'OrderCreated'>;
+
+export type OrderWithdrawnEvent = Log<
+  bigint,
+  number,
+  false,
+  Extract<
+    (typeof orderHubAbi)[number],
+    { type: 'event'; name: 'OrderWithdrawn' }
+  >,
+  false,
+  typeof orderHubAbi
+>;
+
+export type OrderSettledEvent = Log<
+  bigint,
+  number,
+  false,
+  Extract<
+    (typeof orderHubAbi)[number],
+    { type: 'event'; name: 'OrderSettled' }
+  >,
+  false,
+  typeof orderHubAbi
+>;
+
+export type OrderCreatedEvent = Log<
+  bigint,
+  number,
+  false,
+  Extract<
+    (typeof orderHubAbi)[number],
+    { type: 'event'; name: 'OrderCreated' }
+  >,
+  false,
+  typeof orderHubAbi
+>;
+
 export type OrderHubLog = Log<
   bigint,
   number,
@@ -109,7 +147,7 @@ export class ViemService {
     client.watchContractEvent({
       address: this.chainMap.get(chainName)!.order_contract_address,
       abi: orderHubAbi,
-      fromBlock,
+      fromBlock: fromBlock,
       onLogs: (logs) => {
         logs.forEach((log) => {
           onLog(log).catch((error) => console.error(error));

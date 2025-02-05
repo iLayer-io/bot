@@ -28,7 +28,7 @@ describe('ViemService', () => {
     const res = await service.getBlockBatchLogs({
       chainName: 'Foundry',
       fromBlock: 0n,
-      toBlock: 28n,
+      toBlock: 100n,
     });
     res.forEach((r) => {
       console.log(r);

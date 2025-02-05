@@ -16,7 +16,7 @@ export class DatabaseWatcherService implements OnModuleInit {
 
   onModuleInit() {
     const job = new CronJob(`${3} * * * * *`, () => {
-      this.logger.warn(`time (${3}) for job asdasd to run!`);
+      this.logger.warn(`time  for job asdasd to run!`);
     });
 
     // this.schedulerRegistry.addCronJob('asd', job);

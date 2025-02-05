@@ -20,8 +20,8 @@ model order {
   order_id                   Bytes        @unique
   user                       Bytes
   filler                     Bytes
-  source_chain_selector      Bytes
-  destination_chain_selector Bytes
+  source_chain_selector      BigInt
+  destination_chain_selector BigInt
   sponsored                  Boolean
   primary_filler_deadline    DateTime     @db.Timestamp(2)
   deadline                   DateTime     @db.Timestamp(2)
