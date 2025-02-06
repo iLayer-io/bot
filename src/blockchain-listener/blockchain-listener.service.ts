@@ -2,14 +2,15 @@ import { Injectable, OnModuleInit } from '@nestjs/common';
 import { BotChain, CustomConfigService } from '../config/config.service.js';
 import {
   OrderCreatedEvent,
+  OrderFilledEvent,
   OrderHubLog,
   OrderSettledEvent,
+  OrderSpokeLog,
   OrderWithdrawnEvent,
-  ViemService,
-} from '../web3/web.service.js';
+  Web3Service,
+} from '../web3/web3.service.js';
 import { PrismaService } from '../prisma.service.js';
 import { Logger } from '@nestjs/common';
-import { Log } from 'viem';
 
 @Injectable()
 export class BlockchainListenerService implements OnModuleInit {
@@ -17,7 +18,7 @@ export class BlockchainListenerService implements OnModuleInit {
 
   constructor(
     private readonly configService: CustomConfigService,
-    private readonly viemService: ViemService,
+    private readonly web3Service: Web3Service,
     private readonly prismaService: PrismaService,
   ) {}
 
@@ -63,18 +64,26 @@ export class BlockchainListenerService implements OnModuleInit {
       });
 
       // TODO FIXME Add OrderSpoke OrderFilled event listener
-      return this.viemService.watcOrderHubLogs({
+      await this.web3Service.watcOrderHubLogs({
         chainName: chain.name,
-        fromBlock: 0n,
+        fromBlock: fromBlock,
         onLog: async (log) => {
-          await this.handleLog({ log, chain });
+          await this.handleOrderHubLog({ log, chain });
+        },
+      });
+
+      await this.web3Service.watcOrderSpokeLogs({
+        chainName: chain.name,
+        fromBlock: fromBlock,
+        onLog: async (log) => {
+          await this.handleOrderSpokeLog({ log, chain });
         },
       });
     });
     await Promise.any(promises);
   }
 
-  private async handleLog({
+  private async handleOrderHubLog({
     log,
     chain,
   }: {
@@ -113,6 +122,34 @@ export class BlockchainListenerService implements OnModuleInit {
     }
   }
 
+  private async handleOrderSpokeLog({
+    log,
+    chain,
+  }: {
+    log: OrderSpokeLog;
+    chain: BotChain;
+  }) {
+    this.logger.log({ message: 'handling log', log });
+    switch (log.eventName) {
+      case 'OrderFilled': {
+        await this.handleOrderFilled({ log: log as OrderFilledEvent, chain });
+        break;
+      }
+    }
+
+    const exists = await this.prismaService.block_checkpoint.findFirst({
+      where: { height: log.blockNumber, chain_id: chain.chain_id },
+    });
+    if (!exists) {
+      await this.prismaService.block_checkpoint.create({
+        data: {
+          chain_id: chain.chain_id,
+          height: log.blockNumber,
+        },
+      });
+    }
+  }
+
   private async handleOrderCreated({
     log,
     chain,
@@ -121,7 +158,7 @@ export class BlockchainListenerService implements OnModuleInit {
     chain: BotChain;
   }) {
     this.logger.log({ message: 'event created', log });
-    // TODO Create if it doesnt exists
+
     const deadline_number = Number(log.args.order!.deadline);
     const deadline = new Date(deadline_number);
 
@@ -166,7 +203,6 @@ export class BlockchainListenerService implements OnModuleInit {
       return;
     }
 
-    // TODO FIXME best practice lower or camel for prisma?
     await this.prismaService.order.create({
       data: {
         chain_id: chain.chain_id,
@@ -199,7 +235,34 @@ export class BlockchainListenerService implements OnModuleInit {
     log: OrderWithdrawnEvent;
     chain: BotChain;
   }) {
-    // TODO find by chain_id and order_id and update status
+    const orderId = new Uint8Array(
+      Buffer.from(log.args.orderId!.slice(2), 'hex'),
+    );
+
+    const existingOrder = await this.prismaService.order.findFirst({
+      where: {
+        chain_id: chain.chain_id,
+        order_id: orderId,
+      },
+    });
+
+    if (!existingOrder) {
+      this.logger.warn({
+        message: 'Order Withdrawn doesnt exists',
+        orderId: Buffer.from(orderId).toString('hex'),
+        chainId: chain.chain_id,
+      });
+      return;
+    }
+
+    await this.prismaService.order.update({
+      data: {
+        order_status: 'Withdrawn',
+      },
+      where: {
+        id: existingOrder.id,
+      },
+    });
   }
 
   private async handleOrderSettled({
@@ -209,6 +272,70 @@ export class BlockchainListenerService implements OnModuleInit {
     log: OrderSettledEvent;
     chain: BotChain;
   }) {
-    // TODO find by chain_id and order_id and update status
+    const orderId = new Uint8Array(
+      Buffer.from(log.args.orderId!.slice(2), 'hex'),
+    );
+
+    const existingOrder = await this.prismaService.order.findFirst({
+      where: {
+        chain_id: chain.chain_id,
+        order_id: orderId,
+      },
+    });
+
+    if (!existingOrder) {
+      this.logger.warn({
+        message: 'Order Settled doesnt exists',
+        orderId: Buffer.from(orderId).toString('hex'),
+        chainId: chain.chain_id,
+      });
+      return;
+    }
+
+    await this.prismaService.order.update({
+      data: {
+        order_status: 'Filled',
+      },
+      where: {
+        id: existingOrder.id,
+      },
+    });
+  }
+
+  private async handleOrderFilled({
+    log,
+    chain,
+  }: {
+    log: OrderFilledEvent;
+    chain: BotChain;
+  }) {
+    const orderId = new Uint8Array(
+      Buffer.from(log.args.orderId!.slice(2), 'hex'),
+    );
+
+    const existingOrder = await this.prismaService.order.findFirst({
+      where: {
+        chain_id: chain.chain_id,
+        order_id: orderId,
+      },
+    });
+
+    if (!existingOrder) {
+      this.logger.warn({
+        message: 'Order Filled doesnt exists',
+        orderId: Buffer.from(orderId).toString('hex'),
+        chainId: chain.chain_id,
+      });
+      return;
+    }
+
+    await this.prismaService.order.update({
+      data: {
+        order_status: 'Filled',
+      },
+      where: {
+        id: existingOrder.id,
+      },
+    });
   }
 }

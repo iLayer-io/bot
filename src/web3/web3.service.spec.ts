@@ -1,17 +1,17 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { ViemService } from './web.service.js';
+import { Web3Service } from './web3.service.js';
 import { CustomConfigModule } from '../config/config.module.js';
 
 describe('ViemService', () => {
-  let service: ViemService;
+  let service: Web3Service;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       imports: [CustomConfigModule],
-      providers: [ViemService],
+      providers: [Web3Service],
     }).compile();
 
-    service = module.get<ViemService>(ViemService);
+    service = module.get<Web3Service>(Web3Service);
   });
 
   it('should be defined', async () => {

@@ -17,6 +17,7 @@ import {
 import { privateKeyToAccount } from 'viem/accounts';
 import { BotChain, CustomConfigService } from '../config/config.service.js';
 import { abi as orderHubAbi } from './abi/OrderHub.abi.js';
+import { abi as orderSpokeAbi } from './abi/OrderSpoke.abi.js';
 
 // type OrderCreatedEvent = ExtractEventArgs<typeof orderHubAbi, 'OrderCreated'>;
 
@@ -56,6 +57,18 @@ export type OrderCreatedEvent = Log<
   typeof orderHubAbi
 >;
 
+export type OrderFilledEvent = Log<
+  bigint,
+  number,
+  false,
+  Extract<
+    (typeof orderSpokeAbi)[number],
+    { type: 'event'; name: 'OrderFilled' }
+  >,
+  false,
+  typeof orderSpokeAbi
+>;
+
 export type OrderHubLog = Log<
   bigint,
   number,
@@ -64,8 +77,16 @@ export type OrderHubLog = Log<
   false
 >;
 
+export type OrderSpokeLog = Log<
+  bigint,
+  number,
+  false,
+  Extract<(typeof orderSpokeAbi)[number], { type: 'event' }>,
+  false
+>;
+
 @Injectable()
-export class ViemService {
+export class Web3Service {
   private clients: Map<
     string,
     Client<
@@ -126,7 +147,7 @@ export class ViemService {
     const client = this.clients.get(chainName)!;
     const filter = await client.createContractEventFilter({
       abi: orderHubAbi,
-      address: this.chainMap.get(chainName)!.order_contract_address,
+      address: this.chainMap.get(chainName)!.order_hub_contract_address,
       fromBlock,
       toBlock,
     });
@@ -145,8 +166,33 @@ export class ViemService {
   }): Promise<void> {
     const client = this.clients.get(chainName)!;
     client.watchContractEvent({
-      address: this.chainMap.get(chainName)!.order_contract_address,
+      address: this.chainMap.get(chainName)!.order_hub_contract_address,
       abi: orderHubAbi,
+      fromBlock: fromBlock,
+      onLogs: (logs) => {
+        logs.forEach((log) => {
+          onLog(log).catch((error) => console.error(error));
+        });
+      },
+      onError: (error) => {
+        console.error(error);
+      },
+    });
+  }
+
+  async watcOrderSpokeLogs({
+    chainName,
+    fromBlock,
+    onLog,
+  }: {
+    chainName: string;
+    fromBlock: bigint;
+    onLog: (log: OrderSpokeLog) => Promise<void>;
+  }): Promise<void> {
+    const client = this.clients.get(chainName)!;
+    client.watchContractEvent({
+      address: this.chainMap.get(chainName)!.order_spoke_contract_address,
+      abi: orderSpokeAbi,
       fromBlock: fromBlock,
       onLogs: (logs) => {
         logs.forEach((log) => {

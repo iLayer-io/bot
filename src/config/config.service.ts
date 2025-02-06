@@ -25,7 +25,8 @@ export type BotChain = {
   min_order_val: number;
   max_order_val: number;
   profitability_threshold: number;
-  order_contract_address: `0x${string}`;
+  order_hub_contract_address: `0x${string}`;
+  order_spoke_contract_address: `0x${string}`;
   filler_poll_interval: number;
   tokens: Token[];
 };
