@@ -87,14 +87,17 @@ export class BlockchainListenerService implements OnModuleInit {
         await this.handleOrderCreated({ log: log as OrderCreatedEvent, chain });
         break;
       }
-      // case 'OrderWithdrawn': {
-      //   await this.handleOrderWithdrawn({ log, chain });
-      //   break;
-      // }
-      // case 'OrderSettled': {
-      //   await this.handleOrderSettled({ log, chain });
-      //   break;
-      // }
+      case 'OrderWithdrawn': {
+        await this.handleOrderWithdrawn({
+          log: log as OrderWithdrawnEvent,
+          chain,
+        });
+        break;
+      }
+      case 'OrderSettled': {
+        await this.handleOrderSettled({ log: log as OrderSettledEvent, chain });
+        break;
+      }
     }
 
     const exists = await this.prismaService.block_checkpoint.findFirst({
@@ -108,8 +111,6 @@ export class BlockchainListenerService implements OnModuleInit {
         },
       });
     }
-
-    // TODO FIXME Emit to Filler
   }
 
   private async handleOrderCreated({
