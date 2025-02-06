@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { ViemService } from './viem.service.js';
+import { ViemService } from './web.service.js';
 import { CustomConfigModule } from '../config/config.module.js';
 
 describe('ViemService', () => {

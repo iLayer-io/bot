@@ -6,7 +6,7 @@ import {
   OrderSettledEvent,
   OrderWithdrawnEvent,
   ViemService,
-} from '../viem/viem.service.js';
+} from '../web3/web.service.js';
 import { PrismaService } from '../prisma.service.js';
 import { Logger } from '@nestjs/common';
 import { Log } from 'viem';

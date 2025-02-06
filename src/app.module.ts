@@ -1,6 +1,6 @@
 import { Global, Module } from '@nestjs/common';
 import { AppController } from './app.controller.js';
-import { ViemModule } from './viem/viem.module.js';
+import { ViemModule } from './web3/web.module.js';
 import { CustomConfigModule } from './config/config.module.js';
 import { PrismaService } from './prisma.service.js';
 import { BlockchainListenerModule } from './blockchain-listener/blockchain-listener.module.js';
