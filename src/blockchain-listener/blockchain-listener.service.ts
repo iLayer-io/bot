@@ -30,57 +30,99 @@ export class BlockchainListenerService implements OnModuleInit {
 
   private async initializeListener() {
     const promises = this.configService.botConfig.chain.map(async (chain) => {
-      const lastCheckpoint =
-        await this.prismaService.block_checkpoint.findFirst({
-          where: {
-            chain_id: {
-              equals: chain.chain_id,
-            },
-          },
-          orderBy: {
-            height: 'desc',
-          },
-        });
-
-      let fromBlock = 0n;
-
-      if (!lastCheckpoint) {
-        fromBlock = BigInt(chain.start_block);
-      } else if (lastCheckpoint.height < chain.start_block) {
-        throw new Error(
-          'Starting block from the database is less than the configured starting block. \
-                        Orders may remain stuck forever. Please fix the database inconsistency.',
-        );
-      } else {
-        fromBlock = lastCheckpoint.height;
-      }
-
-      // TODO FIXME Consume batch blocks
-
-      this.logger.log({
-        message: `Starting listener`,
-        chain: chain.name,
-        fromBlock: fromBlock,
-      });
-
-      // TODO FIXME Add OrderSpoke OrderFilled event listener
-      await this.web3Service.watcOrderHubLogs({
-        chainName: chain.name,
-        fromBlock: fromBlock,
-        onLog: async (log) => {
-          await this.handleOrderHubLog({ log, chain });
-        },
-      });
-
-      await this.web3Service.watcOrderSpokeLogs({
-        chainName: chain.name,
-        fromBlock: fromBlock,
-        onLog: async (log) => {
-          await this.handleOrderSpokeLog({ log, chain });
-        },
-      });
+      await this.initializeChainListener(chain);
     });
     await Promise.any(promises);
+  }
+
+  private async initializeChainListener(chain: BotChain) {
+    const lastCheckpoint = await this.prismaService.block_checkpoint.findFirst({
+      where: {
+        chain_id: {
+          equals: chain.chain_id,
+        },
+      },
+      orderBy: {
+        height: 'desc',
+      },
+    });
+
+    let fromBlock = 0n;
+
+    // We take config.start_block only if there is no saved checkpoint.
+    // We throw an error if the checkpoint is less than the configured starting block.
+    if (!lastCheckpoint) {
+      fromBlock = BigInt(chain.start_block);
+    } else if (lastCheckpoint.height < chain.start_block) {
+      throw new Error(
+        'Starting block from the database is less than the configured starting block. \
+                    Orders may remain stuck forever. Please fix the database inconsistency.',
+      );
+    } else {
+      fromBlock = lastCheckpoint.height;
+    }
+
+    // TODO FIXME Consume batch blocks
+    const latestBlock = await this.web3Service.getBlockNumber(chain.name);
+    let toBlock =
+      latestBlock - fromBlock > BigInt(chain.block_batch_size)
+        ? fromBlock + BigInt(chain.block_batch_size)
+        : latestBlock;
+
+    while (toBlock > fromBlock) {
+      // TODO FIXME filter both OrderHub and OrderSpoke logs
+      const logs = await this.web3Service.getBlockBatchOrderHubLogs({
+        chainName: chain.name,
+        fromBlock: fromBlock,
+        toBlock: toBlock,
+      });
+
+      for (const log of logs) {
+        await this.handleOrderHubLog({ log, chain });
+        fromBlock = log.blockNumber + 1n; // NB. we can do +1 here because we're working with blocks
+      }
+
+      // TODO FIXME replace with upsert
+      const exists = await this.prismaService.block_checkpoint.findFirst({
+        where: { height: fromBlock, chain_id: chain.chain_id },
+      });
+      if (!exists) {
+        await this.prismaService.block_checkpoint.create({
+          data: {
+            chain_id: chain.chain_id,
+            height: fromBlock,
+          },
+        });
+      }
+
+      const latestBlock = await this.web3Service.getBlockNumber(chain.name);
+      toBlock =
+        latestBlock - fromBlock > BigInt(chain.block_batch_size)
+          ? fromBlock + BigInt(chain.block_batch_size)
+          : latestBlock;
+    }
+
+    this.logger.log({
+      message: `Starting listener`,
+      chain: chain.name,
+      fromBlock: fromBlock,
+    });
+
+    await this.web3Service.watcOrderHubLogs({
+      chainName: chain.name,
+      fromBlock: fromBlock,
+      onLog: async (log) => {
+        await this.handleOrderHubLog({ log, chain });
+      },
+    });
+
+    await this.web3Service.watcOrderSpokeLogs({
+      chainName: chain.name,
+      fromBlock: fromBlock,
+      onLog: async (log) => {
+        await this.handleOrderSpokeLog({ log, chain });
+      },
+    });
   }
 
   private async handleOrderHubLog({
@@ -107,9 +149,17 @@ export class BlockchainListenerService implements OnModuleInit {
         await this.handleOrderSettled({ log: log as OrderSettledEvent, chain });
         break;
       }
+      default: {
+        this.logger.warn({
+          message: 'Unknown log',
+          logName: log.eventName,
+        });
+      }
     }
 
+    // TODO FIXME replace with upsert
     const exists = await this.prismaService.block_checkpoint.findFirst({
+      // NB. we can't do +1 here because we're working with single logs
       where: { height: log.blockNumber, chain_id: chain.chain_id },
     });
     if (!exists) {

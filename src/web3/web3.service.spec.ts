@@ -25,7 +25,7 @@ describe('ViemService', () => {
   });
 
   it('should get logs', async () => {
-    const res = await service.getBlockBatchLogs({
+    const res = await service.getBlockBatchOrderHubLogs({
       chainName: 'Foundry',
       fromBlock: 0n,
       toBlock: 100n,

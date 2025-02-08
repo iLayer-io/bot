@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import {
-  Abi,
   Account,
   BlockTag,
   Client,
@@ -133,7 +132,7 @@ export class Web3Service {
     );
   }
 
-  async getBlockBatchLogs({
+  async getBlockBatchOrderHubLogs({
     chainName,
     fromBlock,
     toBlock,
@@ -142,7 +141,14 @@ export class Web3Service {
     fromBlock: bigint;
     toBlock: bigint;
   }): Promise<
-    GetFilterLogsReturnType<Abi, undefined, undefined, bigint, bigint>
+    GetFilterLogsReturnType<
+      typeof orderHubAbi,
+      Extract<(typeof orderHubAbi)[number], { type: 'event' }>['name'],
+      undefined,
+      bigint,
+      bigint,
+      Extract<(typeof orderHubAbi)[number], { type: 'event' }>
+    >
   > {
     const client = this.clients.get(chainName)!;
     const filter = await client.createContractEventFilter({
