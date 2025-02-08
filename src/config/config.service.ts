@@ -43,4 +43,15 @@ export class CustomConfigService extends NestConfigService {
       ...(config as BotConfig),
     };
   }
+
+  public getChainConfig(chain_id: bigint): BotChain {
+    const botConfig = this.botConfig;
+    const chainConfig = botConfig.chain.find(
+      (chain) => chain.chain_id === Number(chain_id),
+    );
+    if (!chainConfig) {
+      throw new Error(`Chain with id ${chain_id} not found`);
+    }
+    return chainConfig;
+  }
 }
