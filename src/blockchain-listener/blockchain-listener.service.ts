@@ -14,6 +14,7 @@ import { Logger } from '@nestjs/common';
 
 @Injectable()
 export class BlockchainListenerService implements OnModuleInit {
+  // TODO FIXME Refactor this whole service
   private readonly logger = new Logger(BlockchainListenerService.name);
 
   constructor(

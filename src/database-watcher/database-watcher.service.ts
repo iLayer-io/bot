@@ -7,6 +7,8 @@ import { BlockchainFillerService } from '../blockchain-filler/blockchain-filler.
 
 @Injectable()
 export class DatabaseWatcherService implements OnModuleInit {
+  // TODO FIXME Maybe find a cleaner way to handle scheduled tasks and db orders monitoring
+  // TODO FIXME schedule a task to delete expired orders
   private readonly logger = new Logger(DatabaseWatcherService.name);
 
   constructor(
