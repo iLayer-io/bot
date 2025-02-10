@@ -1,6 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import {
   Account,
+  Address,
   BlockTag,
   Client,
   createClient,
@@ -12,6 +13,9 @@ import {
   publicActions,
   PublicActions,
   PublicRpcSchema,
+  WalletActions,
+  walletActions,
+  WalletRpcSchema,
 } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { BotChain, CustomConfigService } from '../config/config.service.js';
@@ -86,14 +90,16 @@ export type OrderSpokeLog = Log<
 
 @Injectable()
 export class Web3Service {
+  private logger = new Logger(Web3Service.name);
   private clients: Map<
     string,
     Client<
       HttpTransport,
       undefined,
       Account,
-      PublicRpcSchema,
-      PublicActions<HttpTransport, undefined>
+      [...PublicRpcSchema, ...WalletRpcSchema],
+      PublicActions<HttpTransport, undefined, Account> &
+        WalletActions<undefined, Account>
     >
   >;
   private chainMap: Map<string, BotChain>;
@@ -111,7 +117,7 @@ export class Web3Service {
         account: privateKeyToAccount(chain.private_key),
       });
 
-      const clientWPublic = client.extend(publicActions);
+      const clientWPublic = client.extend(publicActions).extend(walletActions);
 
       this.clients.set(chain.name, clientWPublic);
     }
@@ -184,6 +190,12 @@ export class Web3Service {
         console.error(error);
       },
     });
+  }
+
+  async getAddress({ chainName }: { chainName: string }): Promise<Address> {
+    const client = this.clients.get(chainName)!;
+    const addresses = await client.getAddresses();
+    return addresses[0];
   }
 
   async watcOrderSpokeLogs({

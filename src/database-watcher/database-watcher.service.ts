@@ -4,6 +4,7 @@ import { CustomConfigService } from '../config/config.service.js';
 import { SchedulerRegistry } from '@nestjs/schedule';
 import { CronJob } from 'cron';
 import { BlockchainFillerService } from '../blockchain-filler/blockchain-filler.service.js';
+import { Web3Service } from '../web3/web3.service.js';
 
 @Injectable()
 export class DatabaseWatcherService implements OnModuleInit {
@@ -16,25 +17,30 @@ export class DatabaseWatcherService implements OnModuleInit {
     private readonly configService: CustomConfigService,
     private readonly schedulerRegistry: SchedulerRegistry,
     private readonly blockchainFillerService: BlockchainFillerService,
+    private readonly web3Service: Web3Service,
   ) {}
 
   onModuleInit() {
     const job = new CronJob(`*/5 * * * * *`, async () => {
-      this.logger.debug({ message: 'running db watcher job' });
-      const orders = await this.prismaService.order.findMany({
-        where: { order_status: 'Created' },
-      });
+      await this.fillReadyOrders();
+    });
+    job.start();
+  }
 
-      for (const order of orders) {
-        this.logger.debug({
-          message: `found order ${order.id} for chain ${order.chain_id}`,
-        });
-        const chainConfig = this.configService.getChainConfig(order.chain_id);
-        await this.blockchainFillerService.fillOrder(chainConfig, order);
-      }
+  async fillReadyOrders() {
+    this.logger.debug({ message: 'running db watcher job' });
+
+    const orders = await this.prismaService.order.findMany({
+      where: { order_status: 'Created' },
     });
 
-    job.start();
+    for (const order of orders) {
+      this.logger.debug({
+        message: `found order ${order.id} for chain ${order.chain_id}`,
+      });
+      const chainConfig = this.configService.getChainConfig(order.chain_id);
+      await this.blockchainFillerService.fillOrder(chainConfig, order);
+    }
   }
 }
 // TODO scheduled task to check for ready orders in the database

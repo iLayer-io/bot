@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { DatabaseWatcherService } from './database-watcher.service';
+import { DatabaseWatcherService } from './database-watcher.service.js';
 
 describe('DatabaseWatcherService', () => {
   let service: DatabaseWatcherService;

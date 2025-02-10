@@ -1,6 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { Web3Service } from './web3.service.js';
 import { CustomConfigModule } from '../config/config.module.js';
+import { createWalletClient, http } from 'viem';
+import { privateKeyToAccount } from 'viem/accounts';
 
 describe('ViemService', () => {
   let service: Web3Service;
@@ -33,5 +35,17 @@ describe('ViemService', () => {
     res.forEach((r) => {
       console.log(r);
     });
+  });
+
+  it('should log addresses', async () => {
+    const walletClient = createWalletClient({
+      transport: http('http://127.0.0.1:8545'),
+      account: privateKeyToAccount(
+        '0x2a871d0798f97d79848a013d4936a73bf4cc922c825d33c1cf7073dff6d409c6',
+      ),
+    });
+
+    const addresses = await walletClient.getAddresses();
+    console.log(addresses);
   });
 });
