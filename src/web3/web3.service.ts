@@ -147,19 +147,15 @@ export class Web3Service {
     fromBlock: bigint;
     toBlock: bigint;
   }): Promise<
-    GetFilterLogsReturnType<
-      typeof orderHubAbi,
-      Extract<(typeof orderHubAbi)[number], { type: 'event' }>['name'],
-      undefined,
-      bigint,
-      bigint,
-      Extract<(typeof orderHubAbi)[number], { type: 'event' }>
-    >
+    GetFilterLogsReturnType<typeof orderHubAbi | typeof orderSpokeAbi>
   > {
     const client = this.clients.get(chainName)!;
     const filter = await client.createContractEventFilter({
-      abi: orderHubAbi,
-      address: this.chainMap.get(chainName)!.order_hub_contract_address,
+      abi: [...orderHubAbi, ...orderSpokeAbi],
+      address: [
+        this.chainMap.get(chainName)!.order_hub_contract_address,
+        this.chainMap.get(chainName)!.order_spoke_contract_address,
+      ],
       fromBlock,
       toBlock,
     });

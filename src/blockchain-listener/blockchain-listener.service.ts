@@ -79,7 +79,7 @@ export class BlockchainListenerService implements OnModuleInit {
       });
 
       for (const log of logs) {
-        await this.handleOrderHubLog({ log, chain });
+        await this.handleOrderLog({ log, chain });
         fromBlock = log.blockNumber + 1n; // NB. we can do +1 here because we're working with blocks
       }
 
@@ -113,7 +113,7 @@ export class BlockchainListenerService implements OnModuleInit {
       chainName: chain.name,
       fromBlock: fromBlock,
       onLog: async (log) => {
-        await this.handleOrderHubLog({ log, chain });
+        await this.handleOrderLog({ log, chain });
       },
     });
 
@@ -126,11 +126,11 @@ export class BlockchainListenerService implements OnModuleInit {
     });
   }
 
-  private async handleOrderHubLog({
+  private async handleOrderLog({
     log,
     chain,
   }: {
-    log: OrderHubLog;
+    log: OrderHubLog | OrderSpokeLog;
     chain: BotChain;
   }) {
     this.logger.log({ message: 'handling log', log });
