@@ -235,13 +235,14 @@ export class BlockchainListenerService implements OnModuleInit {
     );
 
     const calller = new Uint8Array(
+      // TODO Check wheter it is appropriate to slice(2) every address
       Buffer.from(log.args.calller!.slice(2), 'hex'),
     );
 
     const existingOrder = await this.prismaService.order.findFirst({
       where: {
         chain_id: chain.chain_id,
-        order_id: orderId,
+        order_id: orderId, // TODO FIXME modify order_id to be a primary key
       },
     });
 
