@@ -8,14 +8,15 @@ import {
   GetBlockReturnType,
   GetFilterLogsReturnType,
   http,
-  HttpTransport,
   Log,
   publicActions,
   PublicActions,
   PublicRpcSchema,
+  Transport,
   WalletActions,
   walletActions,
   WalletRpcSchema,
+  WatchContractEventOnLogsParameter,
 } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { BotChain, CustomConfigService } from '../config/config.service.js';
@@ -72,21 +73,13 @@ export type OrderFilledEvent = Log<
   typeof orderSpokeAbi
 >;
 
-export type OrderHubLog = Log<
-  bigint,
-  number,
-  false,
-  Extract<(typeof orderHubAbi)[number], { type: 'event' }>,
-  false
->;
+export type OrderHubLog = WatchContractEventOnLogsParameter<
+  typeof orderHubAbi
+>[number];
 
-export type OrderSpokeLog = Log<
-  bigint,
-  number,
-  false,
-  Extract<(typeof orderSpokeAbi)[number], { type: 'event' }>,
-  false
->;
+export type OrderSpokeLog = WatchContractEventOnLogsParameter<
+  typeof orderSpokeAbi
+>[number];
 
 @Injectable()
 export class Web3Service {
@@ -94,11 +87,11 @@ export class Web3Service {
   private clients: Map<
     string,
     Client<
-      HttpTransport,
+      Transport,
       undefined,
       Account,
       [...PublicRpcSchema, ...WalletRpcSchema],
-      PublicActions<HttpTransport, undefined, Account> &
+      PublicActions<Transport, undefined, Account> &
         WalletActions<undefined, Account>
     >
   >;
@@ -147,19 +140,15 @@ export class Web3Service {
     fromBlock: bigint;
     toBlock: bigint;
   }): Promise<
-    GetFilterLogsReturnType<
-      typeof orderHubAbi,
-      Extract<(typeof orderHubAbi)[number], { type: 'event' }>['name'],
-      undefined,
-      bigint,
-      bigint,
-      Extract<(typeof orderHubAbi)[number], { type: 'event' }>
-    >
+    GetFilterLogsReturnType<typeof orderHubAbi | typeof orderSpokeAbi>
   > {
     const client = this.clients.get(chainName)!;
     const filter = await client.createContractEventFilter({
-      abi: orderHubAbi,
-      address: this.chainMap.get(chainName)!.order_hub_contract_address,
+      abi: [...orderHubAbi, ...orderSpokeAbi],
+      address: [
+        this.chainMap.get(chainName)!.order_hub_contract_address,
+        this.chainMap.get(chainName)!.order_spoke_contract_address,
+      ],
       fromBlock,
       toBlock,
     });
