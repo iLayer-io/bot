@@ -48,4 +48,13 @@ describe('ViemService', () => {
     const addresses = await walletClient.getAddresses();
     console.log(addresses);
   });
+
+  it('should read a contract', async () => {
+    const result = await service.getBalance({
+      chainName: 'Foundry',
+      symbol: 'USDC',
+    });
+
+    expect(result).toBe(0n);
+  });
 });

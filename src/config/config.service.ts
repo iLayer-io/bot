@@ -6,7 +6,7 @@ type Token = {
   name: string;
   symbol: string;
   type: string;
-  address: string;
+  address: `0x${string}`;
   decimals: number;
   price_feed: string;
   display_decimals: number;

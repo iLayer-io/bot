@@ -22,6 +22,7 @@ import { privateKeyToAccount } from 'viem/accounts';
 import { BotChain, CustomConfigService } from '../config/config.service.js';
 import { abi as orderHubAbi } from './abi/OrderHub.abi.js';
 import { abi as orderSpokeAbi } from './abi/OrderSpoke.abi.js';
+import { foundry as MockERC20Foundry } from './abi/MockERC20.foundry.js';
 
 // type OrderCreatedEvent = ExtractEventArgs<typeof orderHubAbi, 'OrderCreated'>;
 
@@ -210,5 +211,35 @@ export class Web3Service {
         console.error(error);
       },
     });
+  }
+
+  async getBalance({
+    chainName,
+    symbol,
+  }: {
+    chainName: string;
+    symbol: string;
+  }): Promise<bigint> {
+    const client = this.clients.get(chainName)!;
+    const chainConfig = this.chainMap.get(chainName)!;
+    const address = chainConfig.tokens.find(
+      (t) => t.symbol === symbol,
+    )?.address;
+
+    if (address === undefined) {
+      throw new Error(
+        `Invalid symbol ${symbol}, token not found to get balance`,
+      );
+    }
+    const fillerAddress = (await client.getAddresses())[0];
+
+    const result = await client.readContract({
+      address,
+      abi: MockERC20Foundry.abi,
+      functionName: 'balanceOf',
+      args: [fillerAddress],
+    });
+
+    return result;
   }
 }
