@@ -90,6 +90,7 @@ export type OrderSpokeLog = WatchContractEventOnLogsParameter<
 
 export type TOrder = NonNullable<OrderCreatedEvent['args']['order']>;
 export type TToken = TOrder['inputs'][0] | TOrder['outputs'][0];
+
 const TOKEN_TYPEHASH = keccak256(
   toHex(
     'Token(uint8 tokenType,bytes32 tokenAddress,uint256 tokenId,uint256 amount)',
