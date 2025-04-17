@@ -1,0 +1,65 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Order {
+  id              String         @id @default(cuid())
+  orderId         String         @unique
+  chain           String
+  signature       String
+  options         String
+  permits         String[]
+  createdAt       DateTime       @default(now())
+
+  requestId       String         @unique
+  request         OrderRequest   @relation(fields: [requestId], references: [id])
+}
+
+model OrderRequest {
+  id              String           @id @default(cuid())
+  deadline        Int
+  nonce           Int
+
+  order           OrderDetails?    @relation
+  parentOrder     Order?           @relation
+}
+model OrderDetails {
+  id                     String         @id @default(cuid())
+  user                   String
+  recipient              String
+  filler                 String
+  sourceChainEid         Int
+  destinationChainEid    Int
+  sponsored              Boolean
+  primaryFillerDeadline  Int
+  deadline               Int
+  callRecipient          String
+  callData               String
+  callValue              Int
+
+  inputs                 Token[]        @relation("InputTokens")
+  outputs                Token[]        @relation("OutputTokens")
+
+  requestId              String         @unique
+  request                OrderRequest   @relation(fields: [requestId], references: [id])
+}
+
+
+model Token {
+  id              String         @id @default(cuid())
+  tokenType       Int
+  tokenAddress    String
+  tokenId         Int
+  amount          Int
+
+  orderInputId    String?
+  orderInput      OrderDetails?  @relation("InputTokens", fields: [orderInputId], references: [id])
+
+  orderOutputId   String?
+  orderOutput     OrderDetails?  @relation("OutputTokens", fields: [orderOutputId], references: [id])
+}

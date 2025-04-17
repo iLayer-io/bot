@@ -1,11 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { 
-  IsArray, 
-  IsBoolean, 
-  IsEnum, 
-  IsNumber, 
-  IsString, 
-  ValidateNested 
+import {
+  IsArray,
+  IsBoolean,
+  IsEnum,
+  IsNumber,
+  IsString,
+  ValidateNested
 } from 'class-validator';
 import { Type as TransformType } from 'class-transformer';
 
@@ -106,4 +106,127 @@ export class OrderRequestDto {
   @ValidateNested()
   @TransformType(() => OrderDto)
   order: OrderDto;
+}
+
+export class CreateOrderDto {
+  @ApiProperty({ type: OrderRequestDto })
+  @ValidateNested()
+  @TransformType(() => OrderRequestDto)
+  request: OrderRequestDto;
+
+  @ApiProperty({ type: [String] })
+  @IsArray()
+  @IsString({ each: true })
+  permits: string[];
+
+  @ApiProperty()
+  @IsString()
+  signature: string;
+
+  @ApiProperty()
+  @IsString()
+  options: string;
+}
+
+export class WithdrawOrderDto {
+  @ApiProperty({ type: OrderDto })
+  @ValidateNested()
+  @TransformType(() => OrderDto)
+  order: OrderDto;
+
+  @ApiProperty()
+  @IsNumber()
+  orderNonce: number;
+}
+
+export class FillOrderDto {
+  @ApiProperty({ type: OrderDto })
+  @ValidateNested()
+  @TransformType(() => OrderDto)
+  order: OrderDto;
+
+  @ApiProperty()
+  @IsNumber()
+  orderNonce: number;
+
+  @ApiProperty()
+  @IsString()
+  fundingWallet: string; // bytes32 hex string
+
+  @ApiProperty()
+  @IsNumber()
+  maxGas: number;
+
+  @ApiProperty()
+  @IsString()
+  options: string; // hex string representing bytes
+}
+
+export class TokenIORequestDto {
+  @ApiProperty()
+  @IsString()
+  token: string;
+
+  @ApiProperty()
+  @IsNumber()
+  amount: number;
+}
+
+export class CreateOrderRequestDto {
+  @ApiProperty()
+  @IsString()
+  user: string;
+
+  @ApiProperty()
+  @IsString()
+  recipient: string;
+
+  @ApiProperty({ type: [TokenIORequestDto] })
+  @ValidateNested({ each: true })
+  @TransformType(() => TokenIORequestDto)
+  @IsArray()
+  inputs: TokenIORequestDto[];
+
+  @ApiProperty({ type: [TokenIORequestDto] })
+  @ValidateNested({ each: true })
+  @TransformType(() => TokenIORequestDto)
+  @IsArray()
+  outputs: TokenIORequestDto[];
+
+  @ApiProperty()
+  @IsString()
+  sourceChain: string;
+
+  @ApiProperty()
+  @IsString()
+  destinationChain: string;
+}
+
+export class OriginDto {
+  @IsNumber()
+  srcEid: number;
+
+  @IsString()
+  sender: string;
+
+  @IsString()
+  nonce: string;
+}
+
+export class LzReceiveDto {
+  @ValidateNested()
+  @TransformType(() => OriginDto)
+  origin: OriginDto;
+
+  @IsString()
+  guid: string;
+
+  @IsString()
+  message: string;
+
+  @IsString()
+  executor: string;
+
+  @IsString()
+  extraData: string;
 }
