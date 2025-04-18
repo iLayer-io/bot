@@ -1,8 +1,7 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { Contract, ethers, Wallet } from 'ethers';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { createClientV2 } from '@0x/swap-ts-sdk';
 import {
     Account,
     Client,
@@ -22,11 +21,12 @@ import {
 } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { arbitrum } from 'viem/chains';
+import { ZeroxSwapDto } from 'src/dto/contracts.dto';
 
 @Injectable()
-export class ZeroxService {
+export class ZeroxService implements OnModuleInit {
     private readonly logger = new Logger(ZeroxService.name);
-    private readonly client: any;
+    private client: any;
 
     private provider: ethers.JsonRpcProvider;
     private readonly walletClients: Map<
@@ -69,24 +69,21 @@ export class ZeroxService {
         this.wallet = new Wallet(privateKey, provider);
         this.walletClients = new Map();
         this.publicClients = new Map();
-        this.client = createClientV2({ apiKey });
         this.provider = provider;
 
         const chains = this.configService.get<any[]>('chains') ?? [];
 
         for (const chain of chains) {
             const walletClient = createWalletClient({
-                account: {
-                    address: this.wallet.address as `0x${string}`,
-                    type: 'json-rpc',
-                },
-                chain: chain.name,
-                transport: http(chain.rpcUrl),
+                transport: http(rpcUrl),
+                key: 'client',
+                name: 'Client',
+                account: privateKeyToAccount(privateKey as `0x${string}`),
             });
             this.walletClients.set(chain.name, walletClient);
 
             const client = createClient({
-                transport: http(chain.rpc_url),
+                transport: http(rpcUrl),
                 key: 'client',
                 name: 'Client',
                 account: privateKeyToAccount(privateKey as `0x${string}`),
@@ -96,6 +93,12 @@ export class ZeroxService {
         }
     }
 
+    async onModuleInit() {
+        const { createClientV2 } = await import('@0x/swap-ts-sdk');
+        const apiKey = this.configService.get<string>('ZEROX_API_KEY');
+        if (!apiKey) throw new Error('Missing ZEROX_API_KEY');
+        this.client = createClientV2({ apiKey });
+    }
     /**
      * Gets a price quote from the 0x API using the permit2 endpoint.
      * @param params An object containing buyToken, chainId, sellAmount, and sellToken.
@@ -150,6 +153,7 @@ export class ZeroxService {
                 });
                 const transactionData = response.transaction.data as Hex;
                 response.transaction.data = concat([transactionData, signatureLengthInHex, signature,]);
+                console.log("Modified transaction data with signature:", response.transaction.data);
             } else {
                 throw new Error("Failed to obtain signature or transaction data");
             }
@@ -158,7 +162,6 @@ export class ZeroxService {
         // Return the modified quote response.
         return response;
     }
-
 
     /**
      * Executes a swap using the 0x API.
@@ -188,6 +191,7 @@ export class ZeroxService {
             const nonce = await publicClient.getTransactionCount({
                 address: walletClient.account.address,
             });
+            console.log("nonce", nonce);
 
             const signedTransaction = await walletClient.signTransaction({
                 account: walletClient.account,
@@ -201,6 +205,8 @@ export class ZeroxService {
                 nonce: nonce,
             });
 
+            console.log("Signed transaction:", signedTransaction);
+
             // send the transaction
             const hash = await walletClient.sendRawTransaction({
                 serializedTransaction: signedTransaction,
@@ -212,5 +218,25 @@ export class ZeroxService {
             this.logger.error('Error executing swap through 0x API', error);
             throw error;
         }
+    }
+
+    async swap(
+        chainName: string,
+        zeroxSwapDto: ZeroxSwapDto
+    ): Promise<any> {
+        const response = await this.getQuoteAndAppendSignature({
+            chainName,
+            buyToken: zeroxSwapDto.buyToken,
+            chainId: zeroxSwapDto.chainId,
+            sellAmount: zeroxSwapDto.sellAmount,
+            sellToken: zeroxSwapDto.sellToken,
+            taker: this.wallet.address, /// TODO: abstract this to a config
+        });
+        console.log("response", response);
+
+        // execute the swap
+        const swapResponse = await this.executeSwap(response, chainName);
+        console.log("swapResponse", swapResponse);
+        return swapResponse;
     }
 }

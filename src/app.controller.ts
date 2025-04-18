@@ -1,8 +1,9 @@
 import { Body, Controller, Get, Param, Post } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { CreateOrderDto, CreateOrderRequestDto, FillOrderDto, LzReceiveDto, WithdrawOrderDto } from './dto/contracts.dto';
+import { CreateOrderDto, CreateOrderRequestDto, FillOrderDto, LzReceiveDto, WithdrawOrderDto, ZeroxSwapDto } from './dto/contracts.dto';
 import { AppService } from './app.service';
 import { ContractsService } from './contracts/contracts.service';
+import { ZeroxService } from './zerox/zerox.service';
 
 @Controller()
 export class AppController {
@@ -10,6 +11,7 @@ export class AppController {
     private readonly appService: AppService,
     private readonly configService: ConfigService,
     private readonly contractsService: ContractsService,
+    private readonly zeroxService: ZeroxService,
   ) { }
 
   @Get()
@@ -123,4 +125,11 @@ export class AppController {
     return this.contractsService.lzReceive(dto, chain);
   }
 
+  @Post('swap/:chain')
+  async swap(
+    @Param('chain') chainName: string,
+    @Body() dto: ZeroxSwapDto,
+  ) {
+    return this.zeroxService.swap(chainName, dto);
+  }
 }

@@ -230,3 +230,25 @@ export class LzReceiveDto {
   @IsString()
   extraData: string;
 }
+
+export class ZeroxSwapDto {
+  @ApiProperty({ description: 'The address of the token to buy' })
+  @IsString()
+  buyToken: string;
+
+  @ApiProperty({ description: 'The address of the token to sell' })
+  @IsString()
+  sellToken: string;
+
+  @ApiProperty({ description: 'The amount to sell (in wei or token base units)' })
+  @IsString()
+  sellAmount: string;
+
+  @ApiProperty({ description: 'Chain ID for the swap (e.g., 1 for Ethereum, 42161 for Arbitrum)' })
+  @IsNumber()
+  chainId: number;
+
+  @ApiProperty({ description: 'Taker address (the one initiating the swap)' })
+  @IsString()
+  taker: string;
+}
