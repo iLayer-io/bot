@@ -193,14 +193,10 @@ export class ContractsService {
         const amount = BigInt(dto.request.order.inputs[0].amount);
 
         const allowance: bigint = await (erc20InputToken.connect(wallet) as any).allowance(owner, spender);
-        console.log('Allowance:', allowance.toString());
         if (allowance < amount) {
             const tx = await (erc20InputToken.connect(wallet) as any).approve(spender, amount);
             await tx.wait();
         }
-        const newAllowance: bigint = await (erc20InputToken.connect(wallet) as any).allowance(owner, spender);
-        console.log('Allowance updated: new allowance:', newAllowance.toString());
-
 
         const deadlineFillerGap = 3600;
         const latestBlock = await provider.getBlock('latest');
@@ -228,34 +224,18 @@ export class ContractsService {
         );
 
         dto.request.nonce = Number(orderNonce + 1n);
-        console.log('Order Nonce:', orderNonce.toString());
-        console.log('Order ID:', orderId);
-
-        const timeBuffer = await orderHub.timeBuffer();
-        console.log('Time Buffer:', timeBuffer.toString());
-
-        const status = await orderHub.orders(orderId);
-        console.log('Order Status:', status);
 
         dto.signature = await this.signOrder({
             chainName: chainName,
             request: dto.request,
             orderHub: orderHub
         });
-        console.log('Signature:', dto.signature);
-
-        // const endpoint = await orderHub.endpoint();
-        // console.log('Endpoint:', endpoint);
 
         const nativeFee = await orderHub.estimateBridgingFee(
             dto.request.order.destinationChainEid,
             dto.request.order.callData,
             dto.options
         );
-
-        console.log('Native Fee:', nativeFee.toString());
-
-        console.log('New DTO:', JSON.stringify(dto, null, 2));
 
         try {
             const tx = await (orderHub.connect(wallet) as any).createOrder(
@@ -301,26 +281,6 @@ export class ContractsService {
         dto.order.inputs.forEach(t => t.tokenAddress = pad32(t.tokenAddress as `0x${string}`));
         dto.order.outputs.forEach(t => t.tokenAddress = pad32(t.tokenAddress as `0x${string}`));
 
-        console.log('New DTO:', JSON.stringify(dto, null, 2));
-        const orderId = await orderHub.getOrderId(
-            dto.order,
-            dto.orderNonce
-        );
-        console.log('Order ID:', orderId);
-
-        const timeBuffer = await orderHub.timeBuffer();
-        console.log('Time Buffer:', timeBuffer.toString());
-
-        const latestBlock = await provider.getBlock('latest');
-        const timestamp = latestBlock!.timestamp;
-        console.log('Current Timestamp:', timestamp.toString());
-
-        const deadline = dto.order.deadline;
-        console.log('Order Deadline:', deadline.toString());
-
-        const status = await orderHub.orders(orderId);
-        console.log('Order Status:', status);
-
         const tx = await (orderHub.connect(wallet) as any).withdrawOrder(
             dto.order,
             dto.orderNonce
@@ -354,41 +314,19 @@ export class ContractsService {
 
         const adjustedFee = nativeFee * 110n / 100n; // +10% buffer
 
-        console.log('New DTO:', JSON.stringify(dto, null, 2));
-        const orderId = await orderSpoke.getOrderId(
-            dto.order,
-            dto.orderNonce
-        );
-        console.log('Order ID:', orderId);
-
-        const status = await orderSpoke.orders(orderId);
-        console.log('Order Status:', status);
-
-        const spokeAddress = await orderSpoke.getAddress();
-        console.log('Spoke Address:', spokeAddress);
-        const walletProviderNetwork = await wallet.provider
-        console.log('Wallet Provider:', walletProviderNetwork);
-        // const connectedSpoke = new Contract(spokeAddress, orderSpoke.interface, this.wallet);
-
         const owner = dto.order.user;
         const ownerAddress = '0x' + owner.slice(-40); // Last 20 bytes = 40 hex chars
         const checksummedOwner = getAddress(ownerAddress);
         const outputTokenAddress = dto.order.outputs[0].tokenAddress
-        const actual = '0x' + outputTokenAddress.slice(-40); // Last 20 bytes = 40 hex chars
-        // const checksummed = getAddress(actual);
-        const checksummed = "0x4200000000000000000000000000000000000006";
-        console.log('Output Token Address:', checksummed);
-        const erc20OutputToken = new Contract(checksummed, ERC20ABI, provider);
+        const actual = getAddress('0x' + outputTokenAddress.slice(-40));
+        const erc20OutputToken = new Contract(actual, ERC20ABI, provider);
         const spender = orderSpoke.target;
         const amount = BigInt(dto.order.outputs[0].amount);
         const allowance: bigint = await (erc20OutputToken.connect(wallet) as any).allowance(checksummedOwner, spender);
-        console.log('Allowance to spoke:', allowance.toString());
         if (allowance < amount) {
             const tx = await (erc20OutputToken.connect(wallet) as any).approve(spender, amount);
             await tx.wait();
         }
-        const newAllowance: bigint = await (erc20OutputToken.connect(wallet) as any).allowance(checksummedOwner, spender);
-        console.log('Allowance updated: new allowance:', newAllowance.toString());
 
         const tx = await (orderSpoke.connect(wallet) as any).fillOrder(
             dto.order,

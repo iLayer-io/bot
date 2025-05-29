@@ -178,7 +178,7 @@ export class ZeroxService implements OnModuleInit {
                 const iface = new ethers.Interface([`function ${functionSignature}`]);
                 const data = iface.encodeFunctionData("approve", [
                     response.issues.allowance.spender,
-                    BigInt("1000000000"),
+                    BigInt(response.sellAmount),
                 ]);
                 const tx = await this.wallet.sendTransaction({
                     to: response.sellToken,
@@ -220,23 +220,39 @@ export class ZeroxService implements OnModuleInit {
         }
     }
 
-    async swap(
-        chainName: string,
-        zeroxSwapDto: ZeroxSwapDto
-    ): Promise<any> {
-        const response = await this.getQuoteAndAppendSignature({
-            chainName,
-            buyToken: zeroxSwapDto.buyToken,
-            chainId: zeroxSwapDto.chainId,
-            sellAmount: zeroxSwapDto.sellAmount,
-            sellToken: zeroxSwapDto.sellToken,
-            taker: this.wallet.address, /// TODO: abstract this to a config
-        });
-        console.log("response", response);
+    async swap(zeroxSwapDto: ZeroxSwapDto): Promise<any> {
+        const chains = this.configService.get('chains');
+        const chain = chains.find(c => c.name === zeroxSwapDto.chainName);
 
-        // execute the swap
-        const swapResponse = await this.executeSwap(response, chainName);
+        if (!chain) {
+            throw new Error(`Chain ${zeroxSwapDto.chainName} not found in configuration`);
+        }
+
+        const resolveTokenAddress = (symbol: string): string => {
+            const token = chain.tokens.find(t => t.symbol === symbol);
+            if (!token) {
+                throw new Error(`Token ${symbol} not found in config for chain ${chain.name}`);
+            }
+            return token.address;
+        };
+
+        const buyToken = resolveTokenAddress(zeroxSwapDto.buyTokenName);
+        const sellToken = resolveTokenAddress(zeroxSwapDto.sellTokenName);
+        const chainId = chain.chain_id;
+
+        const response = await this.getQuoteAndAppendSignature({
+            chainName: zeroxSwapDto.chainName,
+            buyToken,
+            sellToken,
+            chainId,
+            sellAmount: zeroxSwapDto.sellAmount,
+            taker: this.wallet.address, // TODO: abstract to config
+        });
+
+        const swapResponse = await this.executeSwap(response, zeroxSwapDto.chainName);
         console.log("swapResponse", swapResponse);
+
         return swapResponse;
     }
+
 }

@@ -2,6 +2,9 @@ export default () => ({
   app: {
     port: parseInt(process.env.PORT ?? '3000', 10),
   },
+  executor: {
+    address: "0xbd8e1a50c2DCC398b9cCd6Ba564CAA3de66B6715"
+  },
   // Add your own config values here
   chains: [
     {

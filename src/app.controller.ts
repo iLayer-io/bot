@@ -37,12 +37,11 @@ export class AppController {
   }
 
 
-  @Post('swap/:chain')
+  @Post('swap')
   async swap(
-    @Param('chain') chainName: string,
     @Body() dto: ZeroxSwapDto,
   ) {
-    return this.zeroxService.swap(chainName, dto);
+    return this.zeroxService.swap(dto);
   }
 
 
