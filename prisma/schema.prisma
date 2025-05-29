@@ -55,7 +55,7 @@ model Token {
   tokenType       Int
   tokenAddress    String
   tokenId         Int
-  amount          Int
+  amount          BigInt
 
   orderInputId    String?
   orderInput      OrderDetails?  @relation("InputTokens", fields: [orderInputId], references: [id])

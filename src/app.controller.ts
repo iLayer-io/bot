@@ -14,88 +14,6 @@ export class AppController {
     private readonly zeroxService: ZeroxService,
   ) { }
 
-  @Get()
-  getHello(): string {
-    return this.appService.getHello();
-  }
-
-  @Post('contracts/fill-order')
-  fill(@Body() dto: FillOrderDto) {
-    return dto;
-  }
-
-  @Post('orders/create-simple')
-  createSimple(@Body() dto: CreateOrderRequestDto) {
-    const chains = this.configService.get<any[]>('chains');
-
-    if (!chains) {
-      throw new Error(`No chain at all found in configuration!`);
-    }
-
-    const sourceChainConfig = chains.find(
-      (chain) => chain.name.toLowerCase() === dto.sourceChain.toLowerCase(),
-    );
-
-    const destinationChainConfig = chains.find(
-      (chain) => chain.name.toLowerCase() === dto.destinationChain.toLowerCase(),
-    );
-
-    if (!sourceChainConfig) {
-      return {
-        msg: `Source chain ${dto.sourceChain} not found in configuration`,
-        chain: null,
-      }
-    }
-
-    if (!destinationChainConfig) {
-      return {
-        msg: `Destination chain ${dto.destinationChain} not found in configuration`,
-        chain: null,
-      }
-    }
-
-    const inputTokenData = sourceChainConfig.tokens.find(
-      (token) => token.symbol.toLowerCase() === dto.inputs[0].token.toLowerCase(),
-    );
-
-    const outputTokenData = destinationChainConfig.tokens.find(
-      (token) => token.symbol.toLowerCase() === dto.outputs[0].token.toLowerCase(),
-    );
-
-    if (!inputTokenData) {
-      return {
-        msg: `Input token ${dto.inputs[0].token} not found in source chain configuration`,
-        chain: null,
-      }
-    }
-
-    if (!outputTokenData) {
-      return {
-        msg: `Output token ${dto.outputs[0].token} not found in destination chain configuration`,
-        chain: null,
-      }
-    }
-
-    return {
-      msg: 'Config loaded',
-      chain: inputTokenData,
-    };
-  }
-
-  @Get('test-block')
-  async getBlockNumber() {
-    const block = await this.contractsService.testConnection();
-    return { block };
-  }
-
-  @Post('contracts/create-order/:chain')
-  async callCreateOrder(
-    @Param('chain') chain: string,
-    @Body() dto: CreateOrderDto
-  ) {
-    return await this.contractsService.createOrder(dto, chain);
-  }
-
   @Post('orders/withdraw/:chain')
   withdrawOrder(
     @Param('chain') chain: string,
@@ -112,18 +30,12 @@ export class AppController {
     return this.contractsService.fillOrder(dto, chain);
   }
 
+
   @Get('orders')
   async getAllOrders() {
     return this.contractsService.getAllOrders();
   }
 
-  @Post('lz/receive/:chain')
-  lzReceive(
-    @Param('chain') chain: string,
-    @Body() dto: CreateOrderDto,
-  ) {
-    return this.contractsService.lzReceive(dto, chain);
-  }
 
   @Post('swap/:chain')
   async swap(
@@ -132,4 +44,33 @@ export class AppController {
   ) {
     return this.zeroxService.swap(chainName, dto);
   }
+
+
+  @Get('hub-status/:chain/:orderId')
+  getOrderHubStatus(@Param('chain') chain: string, @Param('orderId') orderId: string) {
+    return this.contractsService.getOrderHubStatus(orderId, chain);
+  }
+
+  @Get('spoke-status/:chain/:orderId')
+  getOrderSpokeStatus(@Param('chain') chain: string, @Param('orderId') orderId: string) {
+    return this.contractsService.getOrderSpokeStatus(orderId, chain);
+  }
+
+  @Post('orders/create')
+  async createOrderFromRequest(@Body() dto: CreateOrderRequestDto) {
+    try {
+      const result = await this.contractsService.createOrderRequest(dto);
+      return {
+        msg: 'Order successfully created',
+        txHash: result.hash,
+      };
+    } catch (error) {
+      console.error('Error creating order from request DTO:', error);
+      return {
+        msg: 'Order creation failed',
+        error: error.message,
+      };
+    }
+  }
+
 }
