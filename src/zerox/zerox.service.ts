@@ -127,7 +127,7 @@ export class ZeroxService implements OnModuleInit {
         const walletClient = this.walletClients.get(params.chainName)!;
 
         const response = await this.client.swap.permit2.getQuote.query(params);
-        console.log("Received quote", response);
+        // console.log("Received quote", response);
 
         // Attempt to sign the permit2 message if available.
         let signature: Hex | undefined;
@@ -147,7 +147,7 @@ export class ZeroxService implements OnModuleInit {
                 });
                 const transactionData = response.transaction.data as Hex;
                 response.transaction.data = concat([transactionData, signatureLengthInHex, signature,]);
-                console.log("Modified transaction data with signature:", response.transaction.data);
+                // console.log("Modified transaction data with signature:", response.transaction.data);
             } else {
                 throw new Error("Failed to obtain signature or transaction data");
             }
@@ -159,7 +159,7 @@ export class ZeroxService implements OnModuleInit {
 
     /**
      * Executes a swap using the 0x API.
-     * @param params An object containing chainName, buyToken, chainId, sellAmount, sellToken, and taker.
+     * @param params An object containing chainName, buyToken, chainId, sellAmount, sellToken.
      * @returns A promise with the transaction hash.
      */
     async executeSwap(response: any, chainName: string): Promise<any> {
@@ -251,7 +251,7 @@ export class ZeroxService implements OnModuleInit {
             sellToken,
             chainId,
             sellAmount: zeroxSwapDto.sellAmount,
-            taker: wallet.address,
+            taker: zeroxSwapDto.taker
         });
 
         const swapResponse = await this.executeSwap(response, zeroxSwapDto.chainName);

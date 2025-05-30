@@ -21,6 +21,7 @@
   },
   "dependencies": {
     "@0x/swap-ts-sdk": "^2.1.1",
+    "@ethersproject/providers": "^5.8.0",
     "@layerzerolabs/lz-v2-utilities": "^3.0.88",
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.2",
