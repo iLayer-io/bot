@@ -1,9 +1,8 @@
+import { exec } from "child_process";
+
 export default () => ({
   app: {
     port: parseInt(process.env.PORT ?? '3000', 10),
-  },
-  executor: {
-    address: "0xbd8e1a50c2DCC398b9cCd6Ba564CAA3de66B6715"
   },
   // Add your own config values here
   chains: [
@@ -19,6 +18,7 @@ export default () => ({
       profitability_threshold: 0.02,
       order_hub_contract_address: "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
       order_spoke_contract_address: "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0",
+      executor: "0x",
       private_key_environment_variable: "PRIVATE_KEY_ANVIL",
       rpc_url_environment_variable: "RPC_URL_ANVIL",
       filler_poll_interval: 1000,
@@ -54,6 +54,7 @@ export default () => ({
       order_spoke_contract_address: "0x7c4e9f318550b4d12c39506f09657da43c6713ed",
       private_key_environment_variable: "PRIVATE_KEY_ARBITRUM",
       rpc_url_environment_variable: "RPC_URL_ARBITRUM",
+      executor: "0xbd8e1a50c2DCC398b9cCd6Ba564CAA3de66B6715",
       tokens: [
         {
           name: "USDC",
@@ -87,6 +88,7 @@ export default () => ({
       order_spoke_contract_address: "0x7c4e9f318550b4d12c39506f09657da43c6713ed",
       private_key_environment_variable: "PRIVATE_KEY_BASE",
       rpc_url_environment_variable: "RPC_URL_BASE",
+      executor: "0xC5c6d001A4e1CAB7c72748ef37291dd13c0839fb",
       tokens: [
         {
           name: "USDC",

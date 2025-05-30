@@ -252,3 +252,16 @@ export class ZeroxSwapDto {
   @IsString()
   taker: string;
 }
+
+
+export class SwapAndFillDto {
+  @ApiProperty({ type: ZeroxSwapDto })
+  @ValidateNested()
+  @TransformType(() => ZeroxSwapDto)
+  swap: ZeroxSwapDto;
+
+  @ApiProperty({ type: FillOrderDto })
+  @ValidateNested()
+  @TransformType(() => FillOrderDto)
+  fill: FillOrderDto;
+}

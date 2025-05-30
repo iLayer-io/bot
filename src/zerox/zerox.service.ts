@@ -20,7 +20,8 @@ import {
     WalletClient
 } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
-import { arbitrum } from 'viem/chains';
+import * as viemChains from 'viem/chains';
+
 import { ZeroxSwapDto } from 'src/dto/contracts.dto';
 
 @Injectable()
@@ -28,28 +29,16 @@ export class ZeroxService implements OnModuleInit {
     private readonly logger = new Logger(ZeroxService.name);
     private client: any;
 
-    private provider: ethers.JsonRpcProvider;
+    private readonly providers: Map<string, ethers.JsonRpcProvider>;
+    private readonly wallets: Map<string, Wallet>;
     private readonly walletClients: Map<
         string,
-        WalletClient<
-            HttpTransport,
-            undefined,
-            Account,
-            PublicRpcSchema
-        >
+        WalletClient<HttpTransport, undefined, Account, PublicRpcSchema>
     >;
     private readonly publicClients: Map<
         string,
-        Client<
-            HttpTransport,
-            undefined,
-            Account,
-            PublicRpcSchema,
-            PublicActions<HttpTransport, undefined>
-        >
+        Client<HttpTransport, undefined, Account, PublicRpcSchema, PublicActions<HttpTransport, undefined>>
     >;
-
-    private wallet: Wallet;
 
     constructor(
         private readonly configService: ConfigService,
@@ -58,27 +47,33 @@ export class ZeroxService implements OnModuleInit {
         const apiKey = this.configService.get<string>('ZEROX_API_KEY');
         if (!apiKey) throw new Error('Missing ZEROX_API_KEY');
 
-        const rpcUrl = this.configService.get<string>('RPC_URL');
-        if (!rpcUrl) throw new Error('Missing RPC_URL');
-
-        const privateKey = this.configService.get<string>('USER_PRIVATE_KEY');
-        if (!privateKey) throw new Error('Missing USER_PRIVATE_KEY');
-
-        const provider = new ethers.JsonRpcProvider(rpcUrl);
-
-        this.wallet = new Wallet(privateKey, provider);
+        this.providers = new Map();
+        this.wallets = new Map();
         this.walletClients = new Map();
         this.publicClients = new Map();
-        this.provider = provider;
 
         const chains = this.configService.get<any[]>('chains') ?? [];
 
         for (const chain of chains) {
+            const rpcUrl = this.configService.get<string>(chain.rpc_url_environment_variable);
+            if (!rpcUrl) throw new Error(`Missing RPC_URL for chain ${chain.name}`);
+
+            const privateKey = this.configService.get<string>(chain.private_key_environment_variable);
+            if (!privateKey) throw new Error(`Missing PRIVATE_KEY for chain ${chain.name}`);
+
+            const provider = new ethers.JsonRpcProvider(rpcUrl);
+            const wallet = new Wallet(privateKey, provider);
+
+            this.providers.set(chain.name, provider);
+            this.wallets.set(chain.name, wallet);
+
+            const account = privateKeyToAccount(privateKey as `0x${string}`);
+
             const walletClient = createWalletClient({
                 transport: http(rpcUrl),
                 key: 'client',
                 name: 'Client',
-                account: privateKeyToAccount(privateKey as `0x${string}`),
+                account,
             });
             this.walletClients.set(chain.name, walletClient);
 
@@ -86,10 +81,9 @@ export class ZeroxService implements OnModuleInit {
                 transport: http(rpcUrl),
                 key: 'client',
                 name: 'Client',
-                account: privateKeyToAccount(privateKey as `0x${string}`),
+                account,
             });
-            const publicClient = client.extend(publicActions)
-            this.publicClients.set(chain.name, publicClient);
+            this.publicClients.set(chain.name, client.extend(publicActions));
         }
     }
 
@@ -171,6 +165,8 @@ export class ZeroxService implements OnModuleInit {
     async executeSwap(response: any, chainName: string): Promise<any> {
         const walletClient = this.walletClients.get(chainName)!;
         const publicClient = this.publicClients.get(chainName)!;
+        const wallet = this.wallets.get(chainName); // same map logic you use in MulticallService
+        if (!wallet) throw new Error(`Wallet not found for chain ${chainName}`);
         try {
             // deal with the allowance if needed
             if (response.issues?.allowance != null) {
@@ -180,7 +176,7 @@ export class ZeroxService implements OnModuleInit {
                     response.issues.allowance.spender,
                     BigInt(response.sellAmount),
                 ]);
-                const tx = await this.wallet.sendTransaction({
+                const tx = await wallet.sendTransaction({
                     to: response.sellToken,
                     data: data,
                 });
@@ -192,10 +188,14 @@ export class ZeroxService implements OnModuleInit {
                 address: walletClient.account.address,
             });
             console.log("nonce", nonce);
+            const viemChain = (viemChains as Record<string, any>)[chainName];
+            if (!viemChain) {
+                throw new Error(`Unsupported chainName: ${chainName}`);
+            }
 
             const signedTransaction = await walletClient.signTransaction({
                 account: walletClient.account,
-                chain: arbitrum, // TODO: add support for other chains
+                chain: viemChain,
                 gas: !!response?.transaction.gas
                     ? BigInt(response?.transaction.gas)
                     : undefined,
@@ -240,13 +240,18 @@ export class ZeroxService implements OnModuleInit {
         const sellToken = resolveTokenAddress(zeroxSwapDto.sellTokenName);
         const chainId = chain.chain_id;
 
+        const wallet = this.wallets.get(chain.name);
+        if (!wallet) {
+            throw new Error(`Wallet not configured for chain ${chain.name}`);
+        }
+
         const response = await this.getQuoteAndAppendSignature({
             chainName: zeroxSwapDto.chainName,
             buyToken,
             sellToken,
             chainId,
             sellAmount: zeroxSwapDto.sellAmount,
-            taker: this.wallet.address, // TODO: abstract to config
+            taker: wallet.address,
         });
 
         const swapResponse = await this.executeSwap(response, zeroxSwapDto.chainName);
@@ -254,5 +259,6 @@ export class ZeroxService implements OnModuleInit {
 
         return swapResponse;
     }
+
 
 }

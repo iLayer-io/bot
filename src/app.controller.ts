@@ -1,17 +1,15 @@
 import { Body, Controller, Get, Param, Post } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { CreateOrderDto, CreateOrderRequestDto, FillOrderDto, LzReceiveDto, WithdrawOrderDto, ZeroxSwapDto } from './dto/contracts.dto';
-import { AppService } from './app.service';
+import { CreateOrderRequestDto, FillOrderDto, WithdrawOrderDto, ZeroxSwapDto, SwapAndFillDto } from './dto/contracts.dto';
 import { ContractsService } from './contracts/contracts.service';
+import { MulticallService } from './multicall/multicall.service';
 import { ZeroxService } from './zerox/zerox.service';
 
 @Controller()
 export class AppController {
   constructor(
-    private readonly appService: AppService,
-    private readonly configService: ConfigService,
     private readonly contractsService: ContractsService,
     private readonly zeroxService: ZeroxService,
+    private readonly multicallService: MulticallService
   ) { }
 
   @Post('orders/withdraw/:chain')
@@ -72,4 +70,8 @@ export class AppController {
     }
   }
 
+  @Post('swap-and-fill')
+  async swapAndFill(@Body() body: SwapAndFillDto) {
+    return this.multicallService.swapAndFillUsingExecutor(body.swap, body.fill);
+  }
 }

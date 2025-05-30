@@ -4,7 +4,8 @@ import configuration from './config/config';
 
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { PrismaService } from './prisma/prisma.service';
+import { PrismaService } from './prisma/prisma.service'
+import { MulticallService } from './multicall/multicall.service';
 
 import { ContractsService } from './contracts/contracts.service';
 import { ZeroxService } from './zerox/zerox.service';
@@ -17,7 +18,7 @@ import { ZeroxService } from './zerox/zerox.service';
     }),
   ],
   controllers: [AppController],
-  providers: [AppService, ContractsService, ZeroxService, PrismaService],
+  providers: [AppService, ContractsService, ZeroxService, PrismaService, MulticallService],
   exports: [PrismaService],
 })
 export class AppModule { }
