@@ -106,10 +106,10 @@ export class MulticallService {
         }
 
         // Push the swap transaction
-        console.log("pushing swap")
-        console.log("swapResponse.transaction.to", swapResponse.transaction.to);
-        console.log("swapResponse.transaction.data", swapResponse.transaction.data);
-        encoder.zeroXSwap(swapResponse.transaction.to, swapResponse.transaction.data);
+        // console.log("pushing swap")
+        // console.log("swapResponse.transaction.to", swapResponse.transaction.to);
+        // console.log("swapResponse.transaction.data", swapResponse.transaction.data);
+        // encoder.zeroXSwap(swapResponse.transaction.to, swapResponse.transaction.data);
 
         // Check output token allowance for fillOrder
         const outputTokenAddress = getAddress('0x' + fillDto.order.outputs[0].tokenAddress.slice(-40));

@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, ParseIntPipe } from '@nestjs/common';
 import { CreateOrderRequestDto, FillOrderDto, WithdrawOrderDto, ZeroxSwapDto, SwapAndFillDto } from './dto/contracts.dto';
 import { ContractsService } from './contracts/contracts.service';
 import { MulticallService } from './multicall/multicall.service';
@@ -73,5 +73,41 @@ export class AppController {
   @Post('swap-and-fill')
   async swapAndFill(@Body() body: SwapAndFillDto) {
     return this.multicallService.swapAndFillUsingExecutor(body.swap, body.fill);
+  }
+
+  @Get('fillFromDb/:chain/:nonce')
+  async fillOrderFromDb(
+    @Param('chain') chain: string,
+    @Param('nonce', ParseIntPipe) nonce: number
+  ) {
+    const result = await this.contractsService.fillOrderFromDb(nonce, chain);
+    return { status: 'success', result };
+  }
+
+
+  @Get('withdrawFromDb/:chain/:nonce')
+  async withdrawOrderFromDb(
+    @Param('chain') chain: string,
+    @Param('nonce', ParseIntPipe) nonce: number
+  ) {
+    const result = await this.contractsService.withdrawOrderFromDb(nonce, chain);
+    return { status: 'success', result };
+  }
+
+  @Get('orderHubStatusFromDb/:chain/:nonce')
+  async getOrderHubStatusFromDb(
+    @Param('chain') chain: string,
+    @Param('nonce', ParseIntPipe) nonce: number
+  ) {
+    const result = await this.contractsService.orderHubStatusFromDb(nonce, chain);
+    return { status: 'success', result };
+  }
+  @Get('orderSpokeStatusFromDb/:chain/:nonce')
+  async getOrderSpokeStatusFromDb(
+    @Param('chain') chain: string,
+    @Param('nonce', ParseIntPipe) nonce: number
+  ) {
+    const result = await this.contractsService.orderSpokeStatusFromDb(nonce, chain);
+    return { status: 'success', result };
   }
 }

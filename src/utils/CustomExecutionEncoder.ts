@@ -1,5 +1,5 @@
 import { ExecutorEncoder } from 'executooor-ethers';
-import { BytesLike, BigNumberish } from 'ethers';
+import { BytesLike, BigNumberish, parseUnits } from 'ethers';
 import { OrderSpoke__factory } from '../typechain-types';
 import type { FillOrderDto } from '../dto/contracts.dto'; // adjust path
 
@@ -19,7 +19,7 @@ export class CustomExecutorEncoder extends ExecutorEncoder {
       fillDto.orderNonce,
       paddedWallet,
       fillDto.maxGas,
-      fillDto.options,
+      fillDto.options
     ]);
 
     return this.pushCall(orderSpoke, BigInt(fee), callData);

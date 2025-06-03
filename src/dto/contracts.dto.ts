@@ -181,6 +181,10 @@ export class CreateOrderRequestDto {
   @IsString()
   recipient: string;
 
+  @ApiProperty()
+  @IsString()
+  filler: string;
+
   @ApiProperty({ type: [TokenIORequestDto] })
   @ValidateNested({ each: true })
   @TransformType(() => TokenIORequestDto)

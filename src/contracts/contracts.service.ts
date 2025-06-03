@@ -150,7 +150,7 @@ export class ContractsService {
                 order: {
                     user: dto.user,
                     recipient: dto.recipient,
-                    filler: dto.recipient, // fallback filler = recipient
+                    filler: dto.filler,
                     sourceChainEid: sourceChainConfig.chain_eid,
                     destinationChainEid: destChainConfig.chain_eid,
                     sponsored: false,
@@ -173,6 +173,81 @@ export class ContractsService {
         return this.createOrder(createOrderDto, dto.sourceChain);
     }
 
+    async fillOrderFromDb(nonce: number, chainName: string): Promise<void> {
+        const allOrders = await this.getAllOrders();
+
+        for (const r of allOrders) {
+            if (!r.request) {
+                console.warn('Missing request for:', r.id);
+                continue;
+            }
+            if (r.request.nonce === 26) {
+                console.log('FOUND IT:', r);
+            }
+        }
+
+        const orderRecord = allOrders.find(
+            (record) => record.request?.nonce === nonce
+        );
+
+        if (!orderRecord) throw new Error(`Order with nonce ${nonce} not found`);
+
+        const dto = new FillOrderDto();
+        dto.order = orderRecord.request.order;
+        dto.orderNonce = nonce;
+        dto.fundingWallet = orderRecord.request.order.filler; // as discussed
+        dto.maxGas = 5_000_000; // you can customize this if you store it somewhere
+        dto.options = orderRecord.options;
+
+        await this.fillOrder(dto, chainName);
+    }
+
+    async withdrawOrderFromDb(nonce: number, chainName: string): Promise<void> {
+        const allOrders = await this.getAllOrders();
+
+        for (const r of allOrders) {
+            if (!r.request) {
+                console.warn('Missing request for:', r.id);
+                continue;
+            }
+            if (r.request.nonce === 26) {
+                console.log('FOUND IT:', r);
+            }
+        }
+
+        const orderRecord = allOrders.find(
+            (record) => record.request?.nonce === nonce
+        );
+
+        if (!orderRecord) throw new Error(`Order with nonce ${nonce} not found`);
+
+        const dto = new WithdrawOrderDto();
+        dto.order = orderRecord.request.order;
+        dto.orderNonce = nonce;
+
+        await this.withdrawOrder(dto, chainName);
+    }
+
+    async orderHubStatusFromDb(nonce: number, chainName: string): Promise<{ status: OrderStatusLabel; raw: any }> {
+        const allOrders = await this.getAllOrders();
+        const orderRecord = allOrders.find(
+            (record) => record.request?.nonce === nonce
+        );
+        if (!orderRecord) throw new Error(`Order with nonce ${nonce} not found`);
+        const orderId = orderRecord.orderId;
+        return this.getOrderHubStatus(orderId, chainName);
+    }
+
+    // SAME FOR orderSpoke
+    async orderSpokeStatusFromDb(nonce: number, chainName: string): Promise<{ status: OrderStatusLabel; raw: any }> {
+        const allOrders = await this.getAllOrders();
+        const orderRecord = allOrders.find(
+            (record) => record.request?.nonce === nonce
+        );
+        if (!orderRecord) throw new Error(`Order with nonce ${nonce} not found`);
+        const orderId = orderRecord.orderId;
+        return this.getOrderSpokeStatus(orderId, chainName);
+    }
 
     async createOrder(dto: CreateOrderDto, chainName: string): Promise<ContractTransactionResponse> {
         const orderHub = this.orderHubContracts.get(chainName);
