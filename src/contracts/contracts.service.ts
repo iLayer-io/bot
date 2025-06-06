@@ -613,4 +613,25 @@ export class ContractsService {
             }
         }
     }
+
+
+    async getBalance(chainName: string, tokenSymbol: string): Promise<string> {
+        const chains = this.configService.get<any[]>('chains') ?? [];
+        const chain = chains.find(c => c.name === chainName);
+        if (!chain) throw new Error(`Chain not found: ${chainName}`);
+
+        const token = chain.tokens.find((t: any) => t.symbol === tokenSymbol);
+        if (!token) throw new Error(`Token ${tokenSymbol} not found on chain ${chainName}`);
+
+        const rpcUrl = this.configService.get<string>(chain.rpc_url_environment_variable);
+        const privateKey = this.configService.get<string>(chain.private_key_environment_variable);
+        if (!rpcUrl || !privateKey) throw new Error(`Missing RPC or private key for ${chainName}`);
+
+        const provider = new ethers.JsonRpcProvider(rpcUrl);
+        const wallet = new ethers.Wallet(privateKey, provider);
+        const contract = new Contract(token.address, ERC20ABI, provider);
+
+        const balance: bigint = await contract.balanceOf(wallet.address);
+        return balance.toString();
+    }
 }

@@ -127,4 +127,18 @@ export class AppController {
       return { status: 'error', message: error.message };
     }
   }
+
+  @Get('getBalance/:chain/:token')
+  async getBalance(
+    @Param('chain') chain: string,
+    @Param('token') tokenSymbol: string
+  ) {
+    try {
+      const result = await this.contractsService.getBalance(chain, tokenSymbol);
+      return { status: 'success', result };
+    } catch (error) {
+      console.error('Error getting balance:', error);
+      return { status: 'error', message: error.message };
+    }
+  }
 }
