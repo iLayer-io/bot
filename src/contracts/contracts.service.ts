@@ -1,7 +1,7 @@
 import { Options } from '@layerzerolabs/lz-v2-utilities'
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { AbiCoder, ethers, getAddress, parseUnits } from 'ethers';
+import { ethers, getAddress, parseUnits } from 'ethers';
 import { OrderHubABI } from './abi/order-hub.abi';
 import { OrderSpokeABI } from './abi/order-spoke.abi';
 import { CreateOrderDto, CreateOrderRequestDto, FillOrderDto, TokenIORequestDto, OrderRequestDto, WithdrawOrderDto } from '../dto/contracts.dto';

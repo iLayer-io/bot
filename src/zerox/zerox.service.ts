@@ -22,7 +22,7 @@ import {
 import { privateKeyToAccount } from 'viem/accounts';
 import * as viemChains from 'viem/chains';
 
-import { ZeroxSwapDto } from 'src/dto/contracts.dto';
+import { RFQDto, ZeroxSwapDto } from 'src/dto/contracts.dto';
 
 @Injectable()
 export class ZeroxService implements OnModuleInit {
@@ -260,5 +260,35 @@ export class ZeroxService implements OnModuleInit {
         return swapResponse;
     }
 
+
+
+    async rfq(rfqDto: RFQDto): Promise<any> {
+
+        const chains = this.configService.get('chains');
+        const chain = chains.find(c => c.name === rfqDto.chainName);
+
+        if (!chain) {
+            throw new Error(`Chain ${rfqDto.chainName} not found in configuration`);
+        }
+
+        const resolveTokenAddress = (symbol: string): string => {
+            const token = chain.tokens.find(t => t.symbol === symbol);
+            if (!token) {
+                throw new Error(`Token ${symbol} not found in config for chain ${chain.name}`);
+            }
+            return token.address;
+        };
+
+        const buyToken = resolveTokenAddress(rfqDto.buyTokenName);
+        const sellToken = resolveTokenAddress(rfqDto.sellTokenName);
+        const chainId = chain.chain_id;
+
+        return this.getPrice({
+            buyToken,
+            chainId,
+            sellAmount: rfqDto.sellAmount,
+            sellToken
+        });
+    }
 
 }

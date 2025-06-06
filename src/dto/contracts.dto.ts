@@ -257,6 +257,20 @@ export class ZeroxSwapDto {
   taker: string;
 }
 
+export class RFQDto {
+  @ApiProperty({ description: 'The address of the token to buy' })
+  @IsString()
+  buyTokenName: string;
+  @ApiProperty({ description: 'The address of the token to sell' })
+  @IsString()
+  sellTokenName: string;
+  @ApiProperty({ description: 'The amount to sell (in wei or token base units)' })
+  @IsString()
+  sellAmount: string;
+  @ApiProperty({ description: 'Chain name for the RFQ (e.g. Ethereum, Arbitrum)' })
+  @IsString()
+  chainName: string;
+}
 
 export class SwapAndFillDto {
   @ApiProperty({ type: ZeroxSwapDto })

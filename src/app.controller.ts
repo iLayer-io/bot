@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Param, Post, ParseIntPipe } from '@nestjs/common';
-import { CreateOrderRequestDto, FillOrderDto, WithdrawOrderDto, ZeroxSwapDto, SwapAndFillDto } from './dto/contracts.dto';
+import { CreateOrderRequestDto, FillOrderDto, WithdrawOrderDto, ZeroxSwapDto, SwapAndFillDto, RFQDto } from './dto/contracts.dto';
 import { ContractsService } from './contracts/contracts.service';
 import { MulticallService } from './multicall/multicall.service';
 import { ZeroxService } from './zerox/zerox.service';
@@ -42,7 +42,6 @@ export class AppController {
     return this.zeroxService.swap(dto);
   }
 
-
   @Get('hub-status/:chain/:orderId')
   getOrderHubStatus(@Param('chain') chain: string, @Param('orderId') orderId: string) {
     return this.contractsService.getOrderHubStatus(orderId, chain);
@@ -73,6 +72,11 @@ export class AppController {
   @Post('swap-and-fill')
   async swapAndFill(@Body() body: SwapAndFillDto) {
     return this.multicallService.swapAndFillUsingExecutor(body.swap, body.fill);
+  }
+
+  @Post('rfq')
+  async rfq(@Body() dto: RFQDto) {
+    return this.zeroxService.rfq(dto);
   }
 
   @Get('fillFromDb/:chain/:nonce')
