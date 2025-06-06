@@ -1,4 +1,5 @@
 import { Body, Controller, Get, Param, Post, ParseIntPipe } from '@nestjs/common';
+import { DiskHealthIndicator, HealthCheck, HealthCheckService, HttpHealthIndicator, MemoryHealthIndicator, TypeOrmHealthIndicator } from '@nestjs/terminus';
 import { CreateOrderRequestDto, FillOrderDto, WithdrawOrderDto, ZeroxSwapDto, SwapAndFillDto, RFQDto } from './dto/contracts.dto';
 import { ContractsService } from './contracts/contracts.service';
 import { MulticallService } from './multicall/multicall.service';
@@ -9,8 +10,41 @@ export class AppController {
   constructor(
     private readonly contractsService: ContractsService,
     private readonly zeroxService: ZeroxService,
-    private readonly multicallService: MulticallService
-  ) { }
+    private readonly multicallService: MulticallService,
+    private health: HealthCheckService,
+    private db: TypeOrmHealthIndicator,
+    private memory: MemoryHealthIndicator,
+    private disk: DiskHealthIndicator,
+    private http: HttpHealthIndicator,
+  ) {}
+
+  @Get()
+  index() {
+    return { message: 'ok', time: new Date().toISOString() };
+  }
+
+  @Get('/check')
+  @HealthCheck()
+  readiness() {
+    return this.health.check([
+      async () => this.db.pingCheck('typeorm'),
+      async () => this.memory.checkHeap('memory_heap', 200 * 1024 * 1024),
+      async () => this.memory.checkRSS('memory_rss', 3000 * 1024 * 1024),
+      // The used disk storage should not exceed 50% of the full disk size
+      () =>
+        this.disk.checkStorage('disk health', {
+          thresholdPercent: 0.5,
+          path: '/',
+        }),
+      // The used disk storage should not exceed 15 GB
+      () =>
+        this.disk.checkStorage('disk health', {
+          threshold: 15 * 1024 * 1024 * 1024,
+          path: '/',
+        }),
+      () => this.http.pingCheck('connectivity', 'https://google.com'),
+    ]);
+  }
 
   @Post('orders/withdraw/:chain')
   withdrawOrder(
@@ -106,6 +140,7 @@ export class AppController {
     const result = await this.contractsService.orderHubStatusFromDb(nonce, chain);
     return { status: 'success', result };
   }
+
   @Get('orderSpokeStatusFromDb/:chain/:nonce')
   async getOrderSpokeStatusFromDb(
     @Param('chain') chain: string,
@@ -128,7 +163,7 @@ export class AppController {
     }
   }
 
-  @Get('getBalance/:chain/:token')
+  @Get('balance/:chain/:token')
   async getBalance(
     @Param('chain') chain: string,
     @Param('token') tokenSymbol: string

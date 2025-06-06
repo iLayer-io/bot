@@ -16,6 +16,7 @@ import {
 } from 'ethers';
 import { pad32 } from 'src/utils/utils';
 import { PrismaService } from 'src/prisma/prisma.service';
+
 const ERC20ABI = require('erc-20-abi');
 const OrderStatusMap = {
     0: 'NULL',
@@ -23,6 +24,7 @@ const OrderStatusMap = {
     2: 'FILLED',
     3: 'WITHDRAWN'
 } as const;
+const NATIVE_TOKEN = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee';
 
 type OrderStatusLabel = typeof OrderStatusMap[keyof typeof OrderStatusMap];
 
@@ -614,7 +616,6 @@ export class ContractsService {
         }
     }
 
-
     async getBalance(chainName: string, tokenSymbol: string): Promise<string> {
         const chains = this.configService.get<any[]>('chains') ?? [];
         const chain = chains.find(c => c.name === chainName);
@@ -629,8 +630,15 @@ export class ContractsService {
 
         const provider = new ethers.JsonRpcProvider(rpcUrl);
         const wallet = new ethers.Wallet(privateKey, provider);
-        const contract = new Contract(token.address, ERC20ABI, provider);
 
+        if (token.address.toLowerCase() === NATIVE_TOKEN) {
+            // Fetch native balance (ETH, BNB, BERA, etc.)
+            const nativeBalance: bigint = await provider.getBalance(wallet.address);
+            return nativeBalance.toString();
+        }
+
+        // Else, get the balance from the ERC20 token
+        const contract = new Contract(token.address, ERC20ABI, provider);
         const balance: bigint = await contract.balanceOf(wallet.address);
         return balance.toString();
     }

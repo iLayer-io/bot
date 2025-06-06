@@ -1,5 +1,5 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
-import { Contract, ethers, Wallet } from 'ethers';
+import { ethers, Wallet } from 'ethers';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from 'src/prisma/prisma.service';
 import {
@@ -8,7 +8,6 @@ import {
     concat,
     createClient,
     createWalletClient,
-    getContract,
     Hex,
     http,
     HttpTransport,
@@ -21,7 +20,6 @@ import {
 } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import * as viemChains from 'viem/chains';
-
 import { RFQDto, ZeroxSwapDto } from 'src/dto/contracts.dto';
 
 @Injectable()
