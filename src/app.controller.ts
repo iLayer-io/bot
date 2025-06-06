@@ -110,4 +110,17 @@ export class AppController {
     const result = await this.contractsService.orderSpokeStatusFromDb(nonce, chain);
     return { status: 'success', result };
   }
+
+  @Get('listenToOrderCreated/:chain')
+  async listenToOrderCreated(
+    @Param('chain') chain: string
+  ) {
+    try {
+      const result = await this.contractsService.listenToOrderCreated(chain);
+      return { status: 'success', result };
+    } catch (error) {
+      console.error('Error listening to order created events:', error);
+      return { status: 'error', message: error.message };
+    }
+  }
 }

@@ -10,6 +10,7 @@ import {
     keccak256,
     Contract,
     ContractTransactionResponse,
+    Interface,
     solidityPacked,
     Wallet
 } from 'ethers';
@@ -520,4 +521,96 @@ export class ContractsService {
         });
     }
 
+    async listenToOrderCreated(chainName: string) {
+        const orderHub = this.orderHubContracts.get(chainName);
+        if (!orderHub) {
+            console.error(`No OrderHub contract found for chain ${chainName}`);
+            return;
+        }
+
+        const provider = this.providers.get(chainName);
+        if (!provider) {
+            console.error(`No provider found for chain ${chainName}`);
+            return;
+        }
+        const latestBlock = await provider.getBlockNumber();
+
+        const events = await orderHub.queryFilter('OrderCreated', latestBlock - 5000, latestBlock); // adjust range as needed
+
+        for (const ev of events) {
+            if (!('args' in ev)) continue;
+            const orderHubInterface = new Interface(OrderHubABI);
+            const decoded = orderHubInterface.decodeEventLog('OrderCreated', ev.data, ev.topics);
+
+            const [orderId, orderNonce, orderRaw, sender] = decoded;
+
+            // unpack nested struct
+            const [
+                user,
+                recipient,
+                inputsRaw,
+                outputsRaw,
+                sourceChainEid,
+                destinationChainEid,
+                sponsored,
+                primaryFillerDeadline,
+                deadline,
+                callRecipient,
+                callData,
+                callValue,
+            ] = orderRaw;
+
+            // inputsRaw and outputsRaw are arrays of arrays, decode them
+            const inputs = inputsRaw.map(([tokenType, tokenAddress, tokenId, amount]: any) => ({
+                tokenType,
+                tokenAddress,
+                tokenId,
+                amount,
+            }));
+
+            const outputs = outputsRaw.map(([tokenType, tokenAddress, tokenId, amount]: any) => ({
+                tokenType,
+                tokenAddress,
+                tokenId,
+                amount,
+            }));
+
+            const dto: CreateOrderDto = {
+                request: {
+                    nonce: Number(orderNonce),
+                    deadline,
+                    order: {
+                        user: pad32(user),
+                        filler: pad32(user), // if filler === user (or extract separately if different)
+                        recipient: pad32(recipient),
+                        callRecipient: pad32(callRecipient),
+                        sourceChainEid,
+                        destinationChainEid,
+                        sponsored,
+                        primaryFillerDeadline,
+                        deadline,
+                        callValue,
+                        callData,
+                        inputs: inputs.map(i => ({
+                            ...i,
+                            tokenAddress: pad32(i.tokenAddress),
+                        })),
+                        outputs: outputs.map(o => ({
+                            ...o,
+                            tokenAddress: pad32(o.tokenAddress),
+                        })),
+                    }
+                },
+                signature: '',
+                options: '',
+                permits: new Array(inputs.length).fill('0x'),
+            };
+
+            try {
+                await this.saveOrderToDb(orderId, chainName, dto, '', '');
+            } catch (err) {
+                console.error(`Failed to store historical order ${orderId} from ${chainName}:`, err);
+            }
+        }
+    }
 }
